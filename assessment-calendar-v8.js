@@ -71,6 +71,51 @@
         if (note) note.textContent = 'Enter the full assessment time frame in one field, for example 10:00 AM - 11:20 AM.';
     }
 
+    function ensureTodayHighlightStyles() {
+        if (document.getElementById('v8TodayAssignmentHighlightStyles')) return;
+        const style = document.createElement('style');
+        style.id = 'v8TodayAssignmentHighlightStyles';
+        style.textContent = `
+            .v7-day.is-today{
+                border:2px solid var(--accent)!important;
+                background:var(--hover-bg)!important;
+                box-shadow:0 0 0 2px var(--accent),0 8px 20px rgba(0,0,0,.08)!important;
+                position:relative;
+            }
+            .v7-day.is-today h4{
+                color:var(--accent)!important;
+                align-items:center;
+                flex-wrap:wrap;
+            }
+            .v7-day.is-today h4::after{
+                content:'TODAY';
+                display:inline-flex;
+                align-items:center;
+                justify-content:center;
+                padding:2px 7px;
+                border-radius:999px;
+                background:var(--accent);
+                color:#fff;
+                font-size:.56rem;
+                font-weight:800;
+                letter-spacing:.05em;
+            }
+            .v7-day.is-today .v7-week-task{
+                border:1px solid var(--accent)!important;
+                border-left:5px solid var(--accent)!important;
+                background:var(--card-bg)!important;
+                box-shadow:0 3px 10px rgba(0,0,0,.10);
+            }
+            .v7-day.is-today .v7-week-task time{
+                font-weight:850;
+            }
+            .v7-day.is-today .v7-week-task.completed{
+                opacity:.72;
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
     function syncHiddenTimes() {
         const frameInput = document.getElementById('v8AssessmentTimeFrame');
         const start = document.getElementById('v7AssessmentStart');
@@ -171,6 +216,7 @@
     }
 
     function refreshCalendarAssignmentView() {
+        ensureTodayHighlightStyles();
         moveWeeklyTrackerToCalendar();
         removeTodayAssignmentsSection();
         sortWeeklyTrackerByDueDate();
@@ -243,6 +289,7 @@
     function init() {
         if (!app()) return setTimeout(init, 100);
         ensureTimeFrameUI();
+        ensureTodayHighlightStyles();
         patchScheduler();
         refreshCalendarAssignmentView();
 
