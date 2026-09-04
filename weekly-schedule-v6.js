@@ -37,7 +37,10 @@
         });
 
         const mainLabel = document.querySelector('label[for="meetingDays"]');
-        if (mainLabel) mainLabel.textContent = 'Meeting Days (Monday–Friday; hold Ctrl/Cmd to select multiple)';
+        const weekdayLabel = 'Meeting Days (Monday–Friday; hold Ctrl/Cmd to select multiple)';
+        if (mainLabel && mainLabel.textContent !== weekdayLabel) {
+            mainLabel.textContent = weekdayLabel;
+        }
     }
 
     function componentList(course) {
