@@ -1,0 +1,177 @@
+.v5-components-panel {
+    margin: 18px 0 0;
+    padding: 16px;
+    border: 1px solid var(--border-color);
+    border-radius: 14px;
+    background: var(--card-bg);
+}
+
+.v5-components-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+}
+
+.v5-components-heading h4 {
+    margin: 0 0 5px;
+    color: var(--text-primary);
+}
+
+.v5-components-heading h4 span {
+    font-size: .72rem;
+    font-weight: 650;
+    color: var(--text-secondary);
+}
+
+.v5-components-heading p,
+.v5-component-note {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: .86rem;
+    line-height: 1.45;
+}
+
+.v5-component-total-badge {
+    min-width: 145px;
+    border: 1px solid var(--border-color);
+    background: var(--hover-bg);
+    border-radius: 11px;
+    padding: 10px 12px;
+}
+
+.v5-component-total-badge small,
+.v5-component-total-badge strong {
+    display: block;
+}
+
+.v5-component-total-badge small {
+    color: var(--text-secondary);
+    margin-bottom: 3px;
+}
+
+.v5-component-total-badge strong {
+    color: var(--text-primary);
+}
+
+.v5-components-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.v5-component-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    padding: 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 11px;
+    background: var(--card-bg);
+    cursor: pointer;
+    transition: border-color .2s ease, background .2s ease;
+}
+
+.v5-component-row.is-enabled {
+    border-color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 7%, var(--card-bg));
+}
+
+.v5-component-check {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.v5-component-credit-input {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.v5-component-credit-input input {
+    width: 66px;
+    padding: 7px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--card-bg);
+    color: var(--text-primary);
+}
+
+.v5-component-credit-input small,
+.v5-fixed-credit {
+    color: var(--text-secondary);
+    font-size: .75rem;
+    white-space: nowrap;
+}
+
+.v5-fixed-credit {
+    font-weight: 700;
+}
+
+.v5-component-note {
+    margin-top: 10px;
+}
+
+.v5-derived-credit {
+    background: var(--hover-bg) !important;
+}
+
+.v5-course-components {
+    margin: 14px 0 4px;
+    padding: 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 11px;
+    background: var(--hover-bg);
+}
+
+.v5-component-total {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 8px;
+    color: var(--text-secondary);
+    font-size: .82rem;
+}
+
+.v5-component-total strong {
+    color: var(--text-primary);
+}
+
+.v5-component-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+}
+
+.v5-component-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 9px;
+    border-radius: 999px;
+    border: 1px solid var(--border-color);
+    background: var(--card-bg);
+    color: var(--text-secondary);
+    font-size: .78rem;
+}
+
+.v5-component-chip strong {
+    color: var(--text-primary);
+}
+
+@media (max-width: 760px) {
+    .v5-components-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .v5-component-total {
+        flex-direction: column;
+        gap: 3px;
+    }
+}
