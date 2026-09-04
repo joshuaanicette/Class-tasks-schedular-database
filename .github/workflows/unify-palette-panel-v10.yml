@@ -25,49 +25,13 @@ jobs:
           p = Path('palette-gallery-v9.js')
           text = p.read_text()
 
-          text = text.replace(
-              'width:min(760px,calc(100vw - 28px));',
-              'width:min(1040px,calc(100vw - 28px));'
-          )
-          text = text.replace(
-              'max-height:min(72vh,720px)!important;',
-              'max-height:min(82vh,820px)!important;'
-          )
-          text = text.replace(
-              '.v9-palette-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}',
-              '.v9-palette-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}'
-          )
-          text = text.replace(
-              '@media(max-width:760px){.theme-menu.v9-palette-gallery{position:fixed!important;left:12px!important;right:12px!important;top:74px!important;width:auto!important;max-height:calc(100vh - 92px)!important}.v9-palette-grid{grid-template-columns:1fr}.v9-palette-card{grid-template-columns:96px 1fr}}',
-              '@media(max-width:980px){.v9-palette-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:760px){.theme-menu.v9-palette-gallery{position:fixed!important;left:12px!important;right:12px!important;top:74px!important;width:auto!important;max-height:calc(100vh - 92px)!important}.v9-palette-grid{grid-template-columns:1fr}.v9-palette-card{grid-template-columns:96px 1fr}}'
-          )
+          text = text.replace('width:min(760px,calc(100vw - 28px));', 'width:min(1040px,calc(100vw - 28px));')
+          text = text.replace('max-height:min(72vh,720px)!important;', 'max-height:min(82vh,820px)!important;')
+          text = text.replace('.v9-palette-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}', '.v9-palette-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}')
+          text = text.replace('@media(max-width:760px){.theme-menu.v9-palette-gallery{position:fixed!important;left:12px!important;right:12px!important;top:74px!important;width:auto!important;max-height:calc(100vh - 92px)!important}.v9-palette-grid{grid-template-columns:1fr}.v9-palette-card{grid-template-columns:96px 1fr}}', '@media(max-width:980px){.v9-palette-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:760px){.theme-menu.v9-palette-gallery{position:fixed!important;left:12px!important;right:12px!important;top:74px!important;width:auto!important;max-height:calc(100vh - 92px)!important}.v9-palette-grid{grid-template-columns:1fr}.v9-palette-card{grid-template-columns:96px 1fr}}')
 
-          old = '''    function renderPaletteGallery() {
-        const menu = document.getElementById('themeMenu');
-        if (!menu) return;
-        const selectedId = localStorage.getItem('selectedTheme') || 'default';
-        const originals = PALETTES.filter(p => p.group === 'Original');
-        const expanded = PALETTES.filter(p => p.group === 'Expanded');
-
-        menu.classList.add('v9-palette-gallery');
-        menu.innerHTML = `
-            <div class="v9-palette-header">
-                <div><h3>🎨 Color Palette Gallery</h3><p>Preview every palette, then click one to apply it instantly.</p></div>
-                <span class="v9-palette-count">${PALETTES.length} palettes</span>
-            </div>
-            <div class="v9-palette-section-title">Original palettes</div>
-            <div class="v9-palette-grid">${originals.map(p => paletteCard(p, selectedId)).join('')}</div>
-            <div class="v9-palette-section-title">Expanded palettes</div>
-            <div class="v9-palette-grid">${expanded.map(p => paletteCard(p, selectedId)).join('')}</div>`;
-
-        menu.querySelectorAll('[data-v9-palette]').forEach(card => {
-            card.addEventListener('click', event => {
-                event.stopPropagation();
-                applyPalette(card.dataset.v9Palette);
-            });
-        });
-    }'''
-
+          start = text.index('    function renderPaletteGallery() {')
+          end = text.index('    function updateSelectedCard(selectedId) {')
           new = '''    function renderPaletteGallery() {
         const menu = document.getElementById('themeMenu');
         if (!menu) return;
@@ -87,12 +51,10 @@ jobs:
                 applyPalette(card.dataset.v9Palette);
             });
         });
-    }'''
+    }
 
-          if old not in text:
-              raise SystemExit('renderPaletteGallery block not found')
-
-          text = text.replace(old, new, 1)
+'''
+          text = text[:start] + new + text[end:]
           p.write_text(text)
           PY
       - name: Commit unified palette panel
