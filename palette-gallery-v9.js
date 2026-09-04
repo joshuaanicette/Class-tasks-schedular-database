@@ -44,8 +44,9 @@
         const themeCss = PALETTES.filter(p => p.expanded).map(p => `body.${p.className}{--primary-bg:${p.vars.primary};--secondary-bg:${p.vars.secondary};--accent:${p.vars.accent};--accent-light:${p.vars.accentLight};--card-bg:${p.vars.card};--text-primary:${p.vars.text};--text-secondary:${p.vars.textSecondary};--border-color:${p.vars.border};--hover-bg:${p.vars.hover};}`).join('');
         style.textContent = `${themeCss}
             body[data-palette-managed="true"] .container{background:color-mix(in srgb,var(--card-bg) 96%,transparent)!important}
-            .theme-menu.v9-palette-gallery{width:min(1040px,calc(100vw - 28px));min-width:0!important;max-height:min(82vh,820px)!important;padding:14px!important;border:1px solid var(--border-color)!important;border-radius:16px!important;background:var(--card-bg)!important;box-shadow:0 24px 60px rgba(15,23,42,.24)!important;overflow:auto!important}
-            .v9-palette-header{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border-color)}
+            .theme-menu.v9-palette-gallery{position:fixed!important;z-index:100000!important;right:auto!important;bottom:auto!important;width:min(1040px,calc(100vw - 24px));min-width:0!important;max-height:calc(100vh - 24px)!important;padding:14px!important;border:1px solid var(--border-color)!important;border-radius:16px!important;background:var(--card-bg)!important;box-shadow:0 24px 70px rgba(0,0,0,.34)!important;overflow-x:hidden!important;overflow-y:auto!important;overscroll-behavior:contain;isolation:isolate}
+            .theme-menu.v9-palette-gallery.show{display:block!important}
+            .v9-palette-header{position:sticky;top:-14px;z-index:3;display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin:-14px -14px 12px;padding:14px 14px 10px;border-bottom:1px solid var(--border-color);background:var(--card-bg)}
             .v9-palette-header h3{margin:0;color:var(--text-primary);font-size:1rem}.v9-palette-header p{margin:3px 0 0;color:var(--text-secondary);font-size:.72rem}.v9-palette-count{padding:5px 8px;border-radius:999px;background:var(--hover-bg);color:var(--text-secondary);font-size:.68rem;font-weight:800;white-space:nowrap}
             .v9-palette-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
             .v9-palette-card{position:relative;display:grid;grid-template-columns:100px 1fr;gap:9px;align-items:center;width:100%;padding:9px;border:1px solid var(--border-color);border-radius:12px;background:var(--card-bg);color:var(--text-primary);text-align:left;cursor:pointer;transition:.15s ease}
@@ -53,7 +54,7 @@
             .v9-palette-preview{height:48px;border-radius:9px;overflow:hidden;border:1px solid var(--border-color);display:grid;grid-template-rows:1fr 11px}.v9-palette-gradient{background:var(--palette-gradient)}.v9-palette-swatches{display:grid;grid-template-columns:repeat(4,1fr)}
             .v9-palette-copy{min-width:0}.v9-palette-name-row{display:flex;align-items:center;gap:5px;flex-wrap:wrap}.v9-palette-copy strong{font-size:.75rem}.v9-palette-copy small{display:block;margin-top:2px;color:var(--text-secondary);font-size:.63rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.v9-palette-badge{padding:2px 5px;border-radius:999px;background:var(--hover-bg);border:1px solid var(--border-color);font-size:.52rem;font-weight:750}.v9-palette-new{color:var(--accent)}.v9-palette-check{position:absolute;top:6px;right:6px;width:18px;height:18px;border-radius:50%;display:none;align-items:center;justify-content:center;background:var(--accent);color:#fff;font-size:.62rem;font-weight:900}.v9-palette-card.selected .v9-palette-check{display:flex}
             @media(max-width:980px){.v9-palette-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-            @media(max-width:760px){.theme-menu.v9-palette-gallery{position:fixed!important;left:12px!important;right:12px!important;top:74px!important;width:auto!important;max-height:calc(100vh - 92px)!important}.v9-palette-grid{grid-template-columns:1fr}.v9-palette-card{grid-template-columns:92px 1fr}}
+            @media(max-width:680px){.v9-palette-grid{grid-template-columns:1fr}.v9-palette-card{grid-template-columns:92px 1fr}.v9-palette-header p{display:none}}
         `;
         document.head.appendChild(style);
     }
@@ -67,8 +68,28 @@
         if (!menu) return;
         const selected = localStorage.getItem('selectedTheme') || 'default';
         menu.classList.add('v9-palette-gallery');
-        menu.innerHTML = `<div class="v9-palette-header"><div><h3>🎨 All Color Palettes</h3><p>Original and expanded palettes are all shown together in one panel.</p></div><span class="v9-palette-count">${PALETTES.length} palettes</span></div><div class="v9-palette-grid">${PALETTES.map(p=>card(p,selected)).join('')}</div>`;
+        menu.innerHTML = `<div class="v9-palette-header"><div><h3>🎨 All Color Palettes</h3><p>All 21 palettes are shown together in one scrollable panel.</p></div><span class="v9-palette-count">${PALETTES.length} palettes</span></div><div class="v9-palette-grid">${PALETTES.map(p=>card(p,selected)).join('')}</div>`;
         menu.querySelectorAll('[data-v9-palette]').forEach(el => el.addEventListener('click', e => { e.stopPropagation(); apply(el.dataset.v9Palette); }));
+        menu.addEventListener('click', e => e.stopPropagation());
+    }
+
+    function positionMenu() {
+        const menu = document.getElementById('themeMenu');
+        const button = document.querySelector('.theme-selector .icon-btn');
+        if (!menu || !button) return;
+
+        const margin = 12;
+        const rect = button.getBoundingClientRect();
+        const width = Math.min(1040, Math.max(280, window.innerWidth - margin * 2));
+        const left = Math.max(margin, Math.min(rect.right - width, window.innerWidth - width - margin));
+        let top = rect.bottom + 8;
+        if (top > window.innerHeight - 280) top = margin;
+        const availableHeight = Math.max(260, window.innerHeight - top - margin);
+
+        menu.style.width = `${width}px`;
+        menu.style.left = `${left}px`;
+        menu.style.top = `${top}px`;
+        menu.style.maxHeight = `${availableHeight}px`;
     }
 
     function apply(id, options={}) {
@@ -83,11 +104,34 @@
         if (!options.silent) try { taskScheduler?.showNotification?.(`Palette changed to ${p.name}!`, 'success'); } catch (_) {}
     }
 
+    function installDropdownBehavior() {
+        const menu = document.getElementById('themeMenu');
+        const button = document.querySelector('.theme-selector .icon-btn');
+        if (!menu || !button) return;
+
+        // Move the dropdown outside .header so header overflow cannot clip it.
+        if (menu.parentElement !== document.body) document.body.appendChild(menu);
+
+        window.toggleThemeMenu = function () {
+            const opening = !menu.classList.contains('show');
+            menu.classList.toggle('show');
+            if (opening) requestAnimationFrame(positionMenu);
+        };
+
+        window.addEventListener('resize', () => {
+            if (menu.classList.contains('show')) positionMenu();
+        });
+        window.addEventListener('scroll', () => {
+            if (menu.classList.contains('show')) positionMenu();
+        });
+    }
+
     function init() {
         injectStyles();
         const button = document.querySelector('.theme-selector .icon-btn');
         if (button) { button.innerHTML = '🎨 <span class="v9-palette-button-label">Palettes</span>'; button.title = 'Open Color Palette Gallery'; }
         render();
+        installDropdownBehavior();
         apply(localStorage.getItem('selectedTheme') || 'default', {silent:true, keepOpen:true});
         window.changeTheme = theme => apply(theme);
         window.schedulerPalettes = PALETTES.map(p => ({id:p.id,name:p.name,colors:[...p.colors],mode:p.mode}));
