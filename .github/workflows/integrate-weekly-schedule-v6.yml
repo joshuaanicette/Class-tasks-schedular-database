@@ -1,0 +1,41 @@
+name: Integrate weekly schedule v6
+
+on:
+  push:
+    branches:
+      - feat/course-components
+    paths:
+      - '.github/workflows/integrate-weekly-schedule-v6.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  integrate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/course-components
+      - name: Add v6 loader
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('index.html')
+          text = p.read_text()
+          marker = '<script src="./course-components-v5.js"></script>'
+          loader = '<script src="./weekly-schedule-v6.js"></script>'
+          if loader not in text:
+              if marker not in text:
+                  raise SystemExit('course-components-v5 loader not found')
+              text = text.replace(marker, marker + '\n' + loader, 1)
+              p.write_text(text)
+          PY
+      - name: Commit loader
+        run: |
+          if git diff --quiet; then exit 0; fi
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add index.html
+          git commit -m "Load unified weekday class schedule"
+          git push origin HEAD:feat/course-components
