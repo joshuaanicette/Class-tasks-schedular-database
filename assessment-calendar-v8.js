@@ -137,6 +137,45 @@
         calendarView.insertAdjacentElement('afterend', tracker);
     }
 
+    function removeTodayAssignmentsSection() {
+        const calendar = document.getElementById('calendar');
+        if (!calendar) return;
+        const heading = Array.from(calendar.querySelectorAll('.form-section h2')).find(el =>
+            String(el.textContent || '').toLowerCase().includes("today's assignments")
+        );
+        heading?.closest('.form-section')?.remove();
+    }
+
+    function sortWeeklyTrackerByDueDate() {
+        const scheduler = app();
+        const tracker = document.getElementById('v7WeeklyTracker');
+        if (!scheduler || !tracker) return;
+
+        const taskById = new Map((scheduler.tasks || []).map(task => [Number(task.id), task]));
+        tracker.querySelectorAll('.v7-day').forEach(day => {
+            const cards = Array.from(day.querySelectorAll('.v7-week-task'));
+            cards.sort((a, b) => {
+                const taskA = taskById.get(Number(a.dataset.v7TaskId));
+                const taskB = taskById.get(Number(b.dataset.v7TaskId));
+                const dueA = taskA ? new Date(taskA.dueDate).getTime() : Number.MAX_SAFE_INTEGER;
+                const dueB = taskB ? new Date(taskB.dueDate).getTime() : Number.MAX_SAFE_INTEGER;
+                return dueA - dueB;
+            });
+            cards.forEach(card => day.appendChild(card));
+        });
+
+        const subtitle = tracker.querySelector('.v7-week-title p');
+        if (subtitle && !subtitle.textContent.includes('sorted by due date')) {
+            subtitle.textContent = `${subtitle.textContent} · sorted by due date/time`;
+        }
+    }
+
+    function refreshCalendarAssignmentView() {
+        moveWeeklyTrackerToCalendar();
+        removeTodayAssignmentsSection();
+        sortWeeklyTrackerByDueDate();
+    }
+
     function patchScheduler() {
         const scheduler = app();
         if (!scheduler || scheduler.__assessmentCalendarV8) return false;
@@ -148,7 +187,7 @@
             const result = originalAddTask(...args);
             const created = this.tasks.find(task => !before.has(Number(task.id)));
             if (created) persistTimeFrame(created.id);
-            moveWeeklyTrackerToCalendar();
+            setTimeout(refreshCalendarAssignmentView, 0);
             return result;
         };
 
@@ -158,7 +197,7 @@
             if (!validateTimeFrameForAssessment()) return;
             const result = originalUpdateTask(...args);
             if (id) persistTimeFrame(id);
-            moveWeeklyTrackerToCalendar();
+            setTimeout(refreshCalendarAssignmentView, 0);
             return result;
         };
 
@@ -184,7 +223,7 @@
         const originalRenderTasks = scheduler.renderTasks.bind(scheduler);
         scheduler.renderTasks = function (...args) {
             const result = originalRenderTasks(...args);
-            setTimeout(moveWeeklyTrackerToCalendar, 0);
+            setTimeout(refreshCalendarAssignmentView, 0);
             return result;
         };
 
@@ -192,7 +231,7 @@
         if (originalRenderCalendar) {
             scheduler.renderCalendar = function (...args) {
                 const result = originalRenderCalendar(...args);
-                setTimeout(moveWeeklyTrackerToCalendar, 0);
+                setTimeout(refreshCalendarAssignmentView, 0);
                 return result;
             };
         }
@@ -205,7 +244,7 @@
         if (!app()) return setTimeout(init, 100);
         ensureTimeFrameUI();
         patchScheduler();
-        moveWeeklyTrackerToCalendar();
+        refreshCalendarAssignmentView();
 
         const type = document.getElementById('assignmentType');
         if (type && !type.dataset.v8FrameBound) {
