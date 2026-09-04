@@ -1,0 +1,47 @@
+name: Fix course component freeze
+
+on:
+  push:
+    branches:
+      - fix/course-component-freeze
+    paths:
+      - '.github/workflows/fix-course-component-freeze.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: fix/course-component-freeze
+      - name: Make weekend cleanup observer-safe
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('weekly-schedule-v6.js')
+          text = p.read_text()
+          old = """        const mainLabel = document.querySelector('label[for=\"meetingDays\"]');
+        if (mainLabel) mainLabel.textContent = 'Meeting Days (Monday–Friday; hold Ctrl/Cmd to select multiple)';
+"""
+          new = """        const mainLabel = document.querySelector('label[for=\"meetingDays\"]');
+        const weekdayLabel = 'Meeting Days (Monday–Friday; hold Ctrl/Cmd to select multiple)';
+        if (mainLabel && mainLabel.textContent !== weekdayLabel) {
+            mainLabel.textContent = weekdayLabel;
+        }
+"""
+          if old not in text:
+              raise SystemExit('Expected label update block not found')
+          text = text.replace(old, new, 1)
+          p.write_text(text)
+          PY
+      - name: Commit fix
+        run: |
+          if git diff --quiet; then exit 0; fi
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add weekly-schedule-v6.js
+          git commit -m "Prevent weekly schedule observer feedback loop"
+          git push origin HEAD:fix/course-component-freeze
