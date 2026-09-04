@@ -60,96 +60,22 @@
         document.head.appendChild(style);
     }
 
-    function card(p, selected) {
-        return `<button type="button" class="v9-palette-card ${p.id===selected?'selected':''}" data-v9-palette="${escapeHtml(p.id)}" aria-pressed="${p.id===selected?'true':'false'}" style="--palette-gradient:linear-gradient(135deg,${p.colors[0]},${p.colors[1]},${p.colors[2]})"><div class="v9-palette-preview"><div class="v9-palette-gradient"></div><div class="v9-palette-swatches">${p.colors.map(c=>`<span style="background:${c}"></span>`).join('')}</div></div><div class="v9-palette-copy"><div class="v9-palette-name-row"><strong>${escapeHtml(p.name)}</strong><span class="v9-palette-badge">${p.mode}</span>${p.expanded?'<span class="v9-palette-badge v9-palette-new">NEW</span>':''}</div><small>${escapeHtml(p.description)}</small></div><span class="v9-palette-check">✓</span></button>`;
-    }
+    function card(p, selected) { return `<button type="button" class="v9-palette-card ${p.id===selected?'selected':''}" data-v9-palette="${escapeHtml(p.id)}" aria-pressed="${p.id===selected?'true':'false'}" style="--palette-gradient:linear-gradient(135deg,${p.colors[0]},${p.colors[1]},${p.colors[2]})"><div class="v9-palette-preview"><div class="v9-palette-gradient"></div><div class="v9-palette-swatches">${p.colors.map(c=>`<span style="background:${c}"></span>`).join('')}</div></div><div class="v9-palette-copy"><div class="v9-palette-name-row"><strong>${escapeHtml(p.name)}</strong><span class="v9-palette-badge">${p.mode}</span>${p.expanded?'<span class="v9-palette-badge v9-palette-new">NEW</span>':''}</div><small>${escapeHtml(p.description)}</small></div><span class="v9-palette-check">✓</span></button>`; }
 
-    function render() {
-        const menu = document.getElementById('themeMenu');
-        if (!menu) return;
-        const selected = localStorage.getItem('selectedTheme') || 'default';
-        menu.classList.add('v9-palette-gallery');
-        menu.setAttribute('role', 'dialog');
-        menu.setAttribute('aria-label', 'Color palette chooser');
-        menu.innerHTML = `<div class="v9-palette-header"><div class="v9-palette-heading"><h3>🎨 All Color Palettes</h3><p>All 21 palettes are shown together in one scrollable panel.</p></div><div class="v9-palette-header-actions"><span class="v9-palette-count">${PALETTES.length} palettes</span><button type="button" class="v9-palette-close" aria-label="Close color palette chooser">×</button></div></div><div class="v9-palette-grid">${PALETTES.map(p=>card(p,selected)).join('')}</div>`;
-        menu.querySelectorAll('[data-v9-palette]').forEach(el => el.addEventListener('click', e => { e.stopPropagation(); apply(el.dataset.v9Palette); }));
-        menu.querySelector('.v9-palette-close')?.addEventListener('click', e => { e.stopPropagation(); closeMenu(); });
-        menu.addEventListener('click', e => e.stopPropagation());
-    }
+    function render() { const menu=document.getElementById('themeMenu'); if(!menu)return; const selected=localStorage.getItem('selectedTheme')||'default'; menu.classList.add('v9-palette-gallery'); menu.setAttribute('role','dialog'); menu.setAttribute('aria-label','Color palette chooser'); menu.innerHTML=`<div class="v9-palette-header"><div class="v9-palette-heading"><h3>🎨 All Color Palettes</h3><p>All 21 palettes are shown together in one scrollable panel.</p></div><div class="v9-palette-header-actions"><span class="v9-palette-count">${PALETTES.length} palettes</span><button type="button" class="v9-palette-close" aria-label="Close color palette chooser">×</button></div></div><div class="v9-palette-grid">${PALETTES.map(p=>card(p,selected)).join('')}</div>`; menu.querySelectorAll('[data-v9-palette]').forEach(el=>el.addEventListener('click',e=>{e.stopPropagation();apply(el.dataset.v9Palette);})); menu.querySelector('.v9-palette-close')?.addEventListener('click',e=>{e.stopPropagation();closeMenu();}); menu.addEventListener('click',e=>e.stopPropagation()); }
 
-    function viewportSize() {
-        const vv = window.visualViewport;
-        return { width: vv?.width || window.innerWidth, height: vv?.height || window.innerHeight, offsetLeft: vv?.offsetLeft || 0, offsetTop: vv?.offsetTop || 0 };
-    }
+    function viewportSize(){const vv=window.visualViewport;return{width:vv?.width||window.innerWidth,height:vv?.height||window.innerHeight,offsetLeft:vv?.offsetLeft||0,offsetTop:vv?.offsetTop||0};}
 
-    function positionMenu() {
-        const menu = document.getElementById('themeMenu');
-        const button = document.querySelector('.theme-selector .icon-btn');
-        if (!menu || !button) return;
-        const viewport = viewportSize();
-        if (viewport.width <= MOBILE_BREAKPOINT) {
-            menu.style.removeProperty('width'); menu.style.removeProperty('left'); menu.style.removeProperty('top'); menu.style.removeProperty('max-height'); return;
-        }
-        const margin = 12;
-        const rect = button.getBoundingClientRect();
-        const width = Math.min(1040, Math.max(280, viewport.width - margin * 2));
-        const viewportRight = viewport.offsetLeft + viewport.width;
-        const left = Math.max(viewport.offsetLeft + margin, Math.min(rect.right - width, viewportRight - width - margin));
-        let top = rect.bottom + 8;
-        const viewportBottom = viewport.offsetTop + viewport.height;
-        if (top > viewportBottom - 280) top = viewport.offsetTop + margin;
-        const availableHeight = Math.max(260, viewportBottom - top - margin);
-        menu.style.width = `${width}px`; menu.style.left = `${left}px`; menu.style.top = `${top}px`; menu.style.maxHeight = `${availableHeight}px`;
-    }
+    function positionMenu(){const menu=document.getElementById('themeMenu');const button=document.querySelector('.theme-selector .icon-btn');if(!menu||!button)return;const viewport=viewportSize();if(viewport.width<=MOBILE_BREAKPOINT){menu.style.removeProperty('width');menu.style.removeProperty('left');menu.style.removeProperty('top');menu.style.removeProperty('max-height');return;}const margin=12;const rect=button.getBoundingClientRect();const width=Math.min(1040,Math.max(280,viewport.width-margin*2));const viewportRight=viewport.offsetLeft+viewport.width;const left=Math.max(viewport.offsetLeft+margin,Math.min(rect.right-width,viewportRight-width-margin));let top=rect.bottom+8;const viewportBottom=viewport.offsetTop+viewport.height;if(top>viewportBottom-280)top=viewport.offsetTop+margin;const availableHeight=Math.max(260,viewportBottom-top-margin);menu.style.width=`${width}px`;menu.style.left=`${left}px`;menu.style.top=`${top}px`;menu.style.maxHeight=`${availableHeight}px`;}
 
-    function setOpenState(open) {
-        const menu = document.getElementById('themeMenu');
-        if (!menu) return;
-        menu.classList.toggle('show', open);
-        document.body.classList.toggle('v9-palette-open', open && viewportSize().width <= MOBILE_BREAKPOINT);
-        if (open) requestAnimationFrame(positionMenu);
-    }
+    function setOpenState(open){const menu=document.getElementById('themeMenu');if(!menu)return;menu.classList.toggle('show',open);document.body.classList.toggle('v9-palette-open',open&&viewportSize().width<=MOBILE_BREAKPOINT);if(open)requestAnimationFrame(positionMenu);}
+    function closeMenu(){setOpenState(false);}
 
-    function closeMenu() { setOpenState(false); }
+    function apply(id,options={}){const p=PALETTES.find(x=>x.id===id)||PALETTES[0];document.body.classList.remove(...ALL_CLASSES);if(p.className)document.body.classList.add(p.className);document.body.dataset.paletteManaged='true';localStorage.setItem('selectedTheme',p.id);document.querySelector('meta[name="theme-color"]')?.setAttribute('content',p.vars.accent);document.querySelectorAll('[data-v9-palette]').forEach(el=>{const selected=el.dataset.v9Palette===p.id;el.classList.toggle('selected',selected);el.setAttribute('aria-pressed',selected?'true':'false');});if(!options.keepOpen)closeMenu();if(!options.silent)try{taskScheduler?.showNotification?.(`Palette changed to ${p.name}!`,'success');}catch(_){} }
 
-    function apply(id, options={}) {
-        const p = PALETTES.find(x => x.id === id) || PALETTES[0];
-        document.body.classList.remove(...ALL_CLASSES);
-        if (p.className) document.body.classList.add(p.className);
-        document.body.dataset.paletteManaged = 'true';
-        localStorage.setItem('selectedTheme', p.id);
-        document.querySelector('meta[name="theme-color"]')?.setAttribute('content', p.vars.accent);
-        document.querySelectorAll('[data-v9-palette]').forEach(el => { const selected = el.dataset.v9Palette === p.id; el.classList.toggle('selected', selected); el.setAttribute('aria-pressed', selected ? 'true' : 'false'); });
-        if (!options.keepOpen) closeMenu();
-        if (!options.silent) try { taskScheduler?.showNotification?.(`Palette changed to ${p.name}!`, 'success'); } catch (_) {}
-    }
+    function installDropdownBehavior(){const menu=document.getElementById('themeMenu');const button=document.querySelector('.theme-selector .icon-btn');if(!menu||!button)return;if(menu.parentElement!==document.body)document.body.appendChild(menu);window.toggleThemeMenu=function(){setOpenState(!menu.classList.contains('show'));};const refit=()=>{if(!menu.classList.contains('show'))return;document.body.classList.toggle('v9-palette-open',viewportSize().width<=MOBILE_BREAKPOINT);positionMenu();};window.addEventListener('resize',refit);window.addEventListener('orientationchange',()=>setTimeout(refit,120));window.addEventListener('scroll',refit,{passive:true});window.visualViewport?.addEventListener('resize',refit);window.visualViewport?.addEventListener('scroll',refit);document.addEventListener('keydown',e=>{if(e.key==='Escape'&&menu.classList.contains('show'))closeMenu();});}
 
-    function installDropdownBehavior() {
-        const menu = document.getElementById('themeMenu');
-        const button = document.querySelector('.theme-selector .icon-btn');
-        if (!menu || !button) return;
-        if (menu.parentElement !== document.body) document.body.appendChild(menu);
-        window.toggleThemeMenu = function () { setOpenState(!menu.classList.contains('show')); };
-        const refit = () => { if (!menu.classList.contains('show')) return; document.body.classList.toggle('v9-palette-open', viewportSize().width <= MOBILE_BREAKPOINT); positionMenu(); };
-        window.addEventListener('resize', refit);
-        window.addEventListener('orientationchange', () => setTimeout(refit, 120));
-        window.addEventListener('scroll', refit, { passive: true });
-        window.visualViewport?.addEventListener('resize', refit);
-        window.visualViewport?.addEventListener('scroll', refit);
-        document.addEventListener('keydown', e => { if (e.key === 'Escape' && menu.classList.contains('show')) closeMenu(); });
-    }
+    function init(){injectStyles();const button=document.querySelector('.theme-selector .icon-btn');if(button){button.innerHTML='🎨 <span class="v9-palette-button-label">Palettes</span>';button.title='Open Color Palette Gallery';button.setAttribute('aria-haspopup','dialog');}render();installDropdownBehavior();apply(localStorage.getItem('selectedTheme')||'default',{silent:true,keepOpen:true});window.changeTheme=theme=>apply(theme);window.schedulerPalettes=PALETTES.map(p=>({id:p.id,name:p.name,colors:[...p.colors],mode:p.mode}));}
 
-    function init() {
-        injectStyles();
-        const button = document.querySelector('.theme-selector .icon-btn');
-        if (button) { button.innerHTML = '🎨 <span class="v9-palette-button-label">Palettes</span>'; button.title = 'Open Color Palette Gallery'; button.setAttribute('aria-haspopup', 'dialog'); }
-        render();
-        installDropdownBehavior();
-        apply(localStorage.getItem('selectedTheme') || 'default', {silent:true, keepOpen:true});
-        window.changeTheme = theme => apply(theme);
-        window.schedulerPalettes = PALETTES.map(p => ({id:p.id,name:p.name,colors:[...p.colors],mode:p.mode}));
-    }
-
-    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => setTimeout(init, 420));
-    else setTimeout(init, 420);
+    if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(init,420));else setTimeout(init,420);
 })();
