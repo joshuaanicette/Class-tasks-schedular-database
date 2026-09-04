@@ -64,14 +64,13 @@
 
 .v5-component-row {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
+    flex-direction: column;
+    align-items: stretch;
     gap: 10px;
     padding: 12px;
     border: 1px solid var(--border-color);
     border-radius: 11px;
     background: var(--card-bg);
-    cursor: pointer;
     transition: border-color .2s ease, background .2s ease;
 }
 
@@ -86,6 +85,7 @@
     gap: 8px;
     font-weight: 700;
     color: var(--text-primary);
+    cursor: pointer;
 }
 
 .v5-component-credit-input {
@@ -95,7 +95,7 @@
 }
 
 .v5-component-credit-input input {
-    width: 66px;
+    width: 78px;
     padding: 7px;
     border: 1px solid var(--border-color);
     border-radius: 8px;
@@ -104,14 +104,57 @@
 }
 
 .v5-component-credit-input small,
-.v5-fixed-credit {
+.v5-fixed-credit,
+.v5-parent-schedule-note {
     color: var(--text-secondary);
     font-size: .75rem;
-    white-space: nowrap;
 }
 
 .v5-fixed-credit {
     font-weight: 700;
+}
+
+.v5-parent-schedule-note {
+    line-height: 1.35;
+}
+
+.v5-component-schedule-fields {
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(110px, .8fr);
+    gap: 8px;
+}
+
+.v5-component-schedule-fields label {
+    display: grid;
+    gap: 5px;
+}
+
+.v5-component-schedule-fields label > span {
+    color: var(--text-secondary);
+    font-size: .72rem;
+    font-weight: 700;
+}
+
+.v5-component-schedule-fields select,
+.v5-component-schedule-fields input {
+    width: 100%;
+    min-height: 38px;
+    padding: 7px 8px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--card-bg);
+    color: var(--text-primary);
+}
+
+.v5-component-schedule-fields select[multiple] {
+    min-height: 92px;
+}
+
+.v5-component-schedule-fields select:disabled,
+.v5-component-schedule-fields input:disabled,
+.v5-component-credit-input input:disabled {
+    opacity: .55;
+    cursor: not-allowed;
 }
 
 .v5-component-note {
@@ -144,34 +187,123 @@
 }
 
 .v5-component-chips {
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
     gap: 7px;
 }
 
 .v5-component-chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    padding: 6px 9px;
-    border-radius: 999px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 3px 8px;
+    padding: 8px 10px;
+    border-radius: 10px;
     border: 1px solid var(--border-color);
     background: var(--card-bg);
     color: var(--text-secondary);
     font-size: .78rem;
 }
 
+.v5-component-chip > span {
+    color: var(--text-primary);
+    font-weight: 700;
+}
+
 .v5-component-chip strong {
     color: var(--text-primary);
 }
 
-@media (max-width: 760px) {
+.v5-component-chip small {
+    grid-column: 1 / -1;
+    color: var(--text-secondary);
+}
+
+.v5-weekly-components {
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 2px solid var(--border-color);
+}
+
+.v5-weekly-heading {
+    margin-bottom: 14px;
+}
+
+.v5-weekly-heading h3 {
+    margin: 0 0 4px;
+    color: var(--text-primary);
+}
+
+.v5-weekly-heading p {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: .86rem;
+}
+
+.v5-weekly-grid {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(135px, 1fr));
+    gap: 9px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+}
+
+.v5-weekly-day {
+    min-width: 135px;
+    padding: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    background: var(--card-bg);
+}
+
+.v5-weekly-day h4 {
+    margin: 0 0 8px;
+    color: var(--text-primary);
+    font-size: .85rem;
+}
+
+.v5-weekly-meeting {
+    display: grid;
+    gap: 3px;
+    padding: 8px;
+    margin-bottom: 7px;
+    border-radius: 8px;
+    background: var(--hover-bg);
+    border-left: 3px solid var(--accent);
+}
+
+.v5-weekly-meeting:last-child {
+    margin-bottom: 0;
+}
+
+.v5-weekly-meeting strong {
+    color: var(--text-primary);
+    font-size: .78rem;
+}
+
+.v5-weekly-meeting span,
+.v5-weekly-meeting time,
+.v5-no-meeting {
+    color: var(--text-secondary);
+    font-size: .72rem;
+}
+
+.v5-weekly-meeting time {
+    font-weight: 750;
+    color: var(--accent);
+}
+
+@media (max-width: 980px) {
     .v5-components-grid {
         grid-template-columns: 1fr;
     }
+}
 
+@media (max-width: 760px) {
     .v5-component-total {
         flex-direction: column;
         gap: 3px;
+    }
+
+    .v5-component-schedule-fields {
+        grid-template-columns: 1fr;
     }
 }
