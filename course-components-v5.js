@@ -47,7 +47,8 @@
                     label: TYPES[type].label,
                     credits: type === 'lecture' ? Math.max(0, Number(component.credits || 0)) : 0,
                     meetingDays: type === 'lecture' ? [] : (Array.isArray(component.meetingDays) ? component.meetingDays.filter(day => DAY_NAME[day]) : []),
-                    meetingTime: type === 'lecture' ? null : (component.meetingTime || null)
+                    meetingTime: type === 'lecture' ? null : (component.meetingTime || null),
+                    meetingEndTime: type === 'lecture' ? null : (component.meetingEndTime || null)
                 };
             })
             .filter(Boolean);
@@ -61,7 +62,7 @@
         const components = [];
 
         if (lectureEnabled) {
-            components.push({ type: 'lecture', label: 'Lecture', credits: lectureCredits, meetingDays: [], meetingTime: null });
+            components.push({ type: 'lecture', label: 'Lecture', credits: lectureCredits, meetingDays: [], meetingTime: null, meetingEndTime: null });
         }
         if (labEnabled) {
             components.push({
@@ -69,7 +70,8 @@
                 label: 'Lab',
                 credits: 0,
                 meetingDays: selectedValues('v5-lab-days'),
-                meetingTime: document.getElementById('v5-lab-time')?.value || null
+                meetingTime: document.getElementById('v5-lab-time')?.value || null,
+                meetingEndTime: document.getElementById('v5-lab-end-time')?.value || null
             });
         }
         if (recitationEnabled) {
@@ -78,10 +80,51 @@
                 label: 'Recitation',
                 credits: 0,
                 meetingDays: selectedValues('v5-recitation-days'),
-                meetingTime: document.getElementById('v5-recitation-time')?.value || null
+                meetingTime: document.getElementById('v5-recitation-time')?.value || null,
+                meetingEndTime: document.getElementById('v5-recitation-end-time')?.value || null
             });
         }
         return components;
+    }
+
+    function minutesFromTime(value) {
+        if (!value || !/^\d{1,2}:\d{2}$/.test(String(value))) return null;
+        const [hour, minute] = String(value).split(':').map(Number);
+        if (!Number.isFinite(hour) || !Number.isFinite(minute)) return null;
+        return hour * 60 + minute;
+    }
+
+    function durationMinutes(start, end) {
+        const startMinutes = minutesFromTime(start);
+        const endMinutes = minutesFromTime(end);
+        if (startMinutes == null || endMinutes == null || endMinutes <= startMinutes) return null;
+        return endMinutes - startMinutes;
+    }
+
+    function formatDuration(minutes) {
+        if (!(minutes > 0)) return '';
+        const hours = Math.floor(minutes / 60);
+        const mins = minutes % 60;
+        if (hours && mins) return `${hours}h ${mins}m`;
+        if (hours) return `${hours}h`;
+        return `${mins}m`;
+    }
+
+    function validateComponentSchedules(components) {
+        for (const component of components) {
+            if (component.type === 'lecture') continue;
+            const hasStart = Boolean(component.meetingTime);
+            const hasEnd = Boolean(component.meetingEndTime);
+            if (hasStart !== hasEnd) {
+                app()?.showNotification(`${component.label}: enter both a start time and an end time.`, 'error');
+                return false;
+            }
+            if (hasStart && durationMinutes(component.meetingTime, component.meetingEndTime) == null) {
+                app()?.showNotification(`${component.label}: end time must be later than start time.`, 'error');
+                return false;
+            }
+        }
+        return true;
     }
 
     function syncCredits() {
@@ -104,7 +147,7 @@
             if (total) total.textContent = `${Number(creditsInput.value || 0).toFixed(1)} credits`;
         }
 
-        if (note) note.textContent = 'Lecture carries course credits. Lab and recitation are fixed at 0 credits but can have their own meeting days and times.';
+        if (note) note.textContent = 'Lecture carries course credits. Lab and recitation are fixed at 0 credits and can have their own days, start time, and end time.';
     }
 
     function setRowState(type) {
@@ -116,9 +159,11 @@
             if (input) input.disabled = !enabled;
         } else {
             const days = document.getElementById(`v5-${type}-days`);
-            const time = document.getElementById(`v5-${type}-time`);
+            const start = document.getElementById(`v5-${type}-time`);
+            const end = document.getElementById(`v5-${type}-end-time`);
             if (days) days.disabled = !enabled;
-            if (time) time.disabled = !enabled;
+            if (start) start.disabled = !enabled;
+            if (end) end.disabled = !enabled;
         }
         syncCredits();
     }
@@ -140,7 +185,7 @@
             <div class="v5-components-heading">
                 <div>
                     <h4>Course components <span>optional</span></h4>
-                    <p>Lecture uses the parent course schedule and carries the credits. Lab and recitation stay at 0 credits and can have separate attendance days and times.</p>
+                    <p>Lecture uses the parent course schedule and carries the credits. Lab and recitation stay at 0 credits and can have separate attendance days plus start/end times.</p>
                 </div>
                 <div class="v5-component-total-badge"><small>Total course credits</small><strong id="v5ComponentCreditTotal">${Number(credits.value || 0).toFixed(1)} credits</strong></div>
             </div>
@@ -148,26 +193,28 @@
                 <label class="v5-component-row" id="v5-lecture-row">
                     <span class="v5-component-check"><input type="checkbox" id="v5-lecture-enabled"><span>📘 Lecture</span></span>
                     <span class="v5-component-credit-input"><input type="number" id="v5-lecture-credits" min="0" max="10" step="0.5" disabled placeholder="4"><small>credits</small></span>
-                    <span class="v5-parent-schedule-note">Uses course meeting days/time above</span>
+                    <span class="v5-parent-schedule-note">Uses the course meeting time range above</span>
                 </label>
                 <div class="v5-component-row v5-scheduled-component" id="v5-lab-row">
                     <label class="v5-component-check"><input type="checkbox" id="v5-lab-enabled"><span>🧪 Lab</span></label>
                     <span class="v5-fixed-credit">0 credits</span>
                     <div class="v5-component-schedule-fields">
-                        <label><span>Days</span><select id="v5-lab-days" multiple disabled>${dayOptions()}</select></label>
-                        <label><span>Time</span><input type="time" id="v5-lab-time" disabled></label>
+                        <label class="v5-days-field"><span>Days</span><select id="v5-lab-days" multiple disabled>${dayOptions()}</select></label>
+                        <label><span>Start time</span><input type="time" id="v5-lab-time" disabled></label>
+                        <label><span>End time</span><input type="time" id="v5-lab-end-time" disabled></label>
                     </div>
                 </div>
                 <div class="v5-component-row v5-scheduled-component" id="v5-recitation-row">
                     <label class="v5-component-check"><input type="checkbox" id="v5-recitation-enabled"><span>🗣️ Recitation</span></label>
                     <span class="v5-fixed-credit">0 credits</span>
                     <div class="v5-component-schedule-fields">
-                        <label><span>Days</span><select id="v5-recitation-days" multiple disabled>${dayOptions()}</select></label>
-                        <label><span>Time</span><input type="time" id="v5-recitation-time" disabled></label>
+                        <label class="v5-days-field"><span>Days</span><select id="v5-recitation-days" multiple disabled>${dayOptions()}</select></label>
+                        <label><span>Start time</span><input type="time" id="v5-recitation-time" disabled></label>
+                        <label><span>End time</span><input type="time" id="v5-recitation-end-time" disabled></label>
                     </div>
                 </div>
             </div>
-            <div class="v5-component-note" id="v5ComponentCreditNote">Lecture carries course credits. Lab and recitation are fixed at 0 credits but can have their own meeting days and times.</div>`;
+            <div class="v5-component-note" id="v5ComponentCreditNote">Lecture carries course credits. Lab and recitation are fixed at 0 credits and can have their own days, start time, and end time.</div>`;
         anchor.insertAdjacentElement('afterend', panel);
 
         ['lecture', 'lab', 'recitation'].forEach(type => {
@@ -205,10 +252,14 @@
 
         setSelectedDays('v5-lab-days', lab?.meetingDays || []);
         setSelectedDays('v5-recitation-days', recitation?.meetingDays || []);
-        const labTime = document.getElementById('v5-lab-time');
-        const recitationTime = document.getElementById('v5-recitation-time');
-        if (labTime) labTime.value = lab?.meetingTime || '';
-        if (recitationTime) recitationTime.value = recitation?.meetingTime || '';
+
+        ['lab', 'recitation'].forEach(type => {
+            const component = type === 'lab' ? lab : recitation;
+            const start = document.getElementById(`v5-${type}-time`);
+            const end = document.getElementById(`v5-${type}-end-time`);
+            if (start) start.value = component?.meetingTime || '';
+            if (end) end.value = component?.meetingEndTime || '';
+        });
 
         ['lecture', 'lab', 'recitation'].forEach(setRowState);
         syncCredits();
@@ -230,12 +281,15 @@
         ['lab', 'recitation'].forEach(type => {
             setSelectedDays(`v5-${type}-days`, []);
             const days = document.getElementById(`v5-${type}-days`);
-            const time = document.getElementById(`v5-${type}-time`);
+            const start = document.getElementById(`v5-${type}-time`);
+            const end = document.getElementById(`v5-${type}-end-time`);
             if (days) days.disabled = true;
-            if (time) {
-                time.value = '';
-                time.disabled = true;
-            }
+            [start, end].forEach(input => {
+                if (input) {
+                    input.value = '';
+                    input.disabled = true;
+                }
+            });
         });
 
         const credits = document.getElementById('credits');
@@ -275,12 +329,24 @@
         return `${displayHour}:${String(minute).padStart(2, '0')} ${suffix}`;
     }
 
-    function scheduleText(component) {
-        if (component.type === 'lecture') return 'Uses course schedule';
+    function timeRangeText(start, end) {
+        if (!start && !end) return '';
+        if (start && end) {
+            const duration = durationMinutes(start, end);
+            return `${formatTime(start)}–${formatTime(end)}${duration ? ` (${formatDuration(duration)})` : ''}`;
+        }
+        return start ? `${formatTime(start)}–?` : `?–${formatTime(end)}`;
+    }
+
+    function scheduleText(component, course) {
+        if (component.type === 'lecture') {
+            const days = (course?.meetingDays || []).map(day => DAY_NAME[day] || day).join(', ');
+            return [days, course?.meetingTime || 'Course meeting time not set'].filter(Boolean).join(' · ');
+        }
         const days = (component.meetingDays || []).map(day => DAY_NAME[day] || day).join(', ');
-        const time = component.meetingTime ? formatTime(component.meetingTime) : '';
-        if (!days && !time) return 'Schedule not set';
-        return [days || 'Days not set', time || 'Time not set'].join(' · ');
+        const range = timeRangeText(component.meetingTime, component.meetingEndTime);
+        if (!days && !range) return 'Schedule not set';
+        return [days || 'Days not set', range || 'Time range not set'].join(' · ');
     }
 
     function componentSummary(course) {
@@ -290,7 +356,7 @@
             <div class="v5-component-total"><span>Course structure</span><strong>${Number(course.credits || 0).toFixed(1)} total credits</strong></div>
             <div class="v5-component-chips">${components.map(component => {
                 const meta = TYPES[component.type];
-                return `<span class="v5-component-chip"><span>${meta.icon} ${meta.label}</span><strong>${component.credits.toFixed(1)} cr</strong><small>${escapeHtml(scheduleText(component))}</small></span>`;
+                return `<span class="v5-component-chip"><span>${meta.icon} ${meta.label}</span><strong>${component.credits.toFixed(1)} cr</strong><small>${escapeHtml(scheduleText(component, course))}</small></span>`;
             }).join('')}</div>
         </div>`;
     }
@@ -302,7 +368,13 @@
                 .filter(component => component.type !== 'lecture' && component.meetingDays.length && component.meetingTime)
                 .forEach(component => {
                     component.meetingDays.forEach(day => {
-                        meetings.push({ course, component, day, time: component.meetingTime });
+                        meetings.push({
+                            course,
+                            component,
+                            day,
+                            time: component.meetingTime,
+                            endTime: component.meetingEndTime
+                        });
                     });
                 });
         });
@@ -322,7 +394,7 @@
         section.innerHTML = `
             <div class="v5-weekly-heading">
                 <h3>🧪 Lab & Recitation Meetings</h3>
-                <p>Separate 0-credit attendance meetings attached to their parent courses.</p>
+                <p>Separate 0-credit attendance meetings attached to their parent courses, with start/end times and duration.</p>
             </div>
             <div class="v5-weekly-grid">
                 ${DAYS.map(([dayCode, dayName]) => {
@@ -336,7 +408,7 @@
                             return `<div class="v5-weekly-meeting">
                                 <strong>${meta.icon} ${escapeHtml(meeting.course.code || meeting.course.name)} ${meta.label}</strong>
                                 <span>${escapeHtml(meeting.course.name)}</span>
-                                <time>${escapeHtml(formatTime(meeting.time))}</time>
+                                <time>${escapeHtml(timeRangeText(meeting.time, meeting.endTime) || formatTime(meeting.time))}</time>
                             </div>`;
                         }).join('') : '<span class="v5-no-meeting">—</span>'}
                     </div>`;
@@ -352,6 +424,7 @@
         const originalAdd = scheduler.addCourse.bind(scheduler);
         scheduler.addCourse = function (...args) {
             const components = selectedComponents();
+            if (!validateComponentSchedules(components)) return;
             const before = new Set(this.courses.map(course => Number(course.id)));
             const result = originalAdd(...args);
             const created = this.courses.find(course => !before.has(Number(course.id)));
@@ -364,6 +437,7 @@
         scheduler.updateCourse = function (...args) {
             const id = this.editingCourseId;
             const components = selectedComponents();
+            if (!validateComponentSchedules(components)) return;
             const result = originalUpdate(...args);
             if (id && this.courses.some(course => Number(course.id) === Number(id))) saveComponents(id, components);
             reset();
