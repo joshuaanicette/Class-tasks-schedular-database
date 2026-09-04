@@ -1,0 +1,41 @@
+name: Integrate palette gallery v9
+
+on:
+  push:
+    branches:
+      - feat/assessments-weekly-tracker
+    paths:
+      - '.github/workflows/integrate-palette-gallery-v9.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  integrate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/assessments-weekly-tracker
+      - name: Add palette gallery loader
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('index.html')
+          text = p.read_text()
+          marker = '<script src="./assessment-calendar-v8.js"></script>'
+          loader = '<script src="./palette-gallery-v9.js"></script>'
+          if loader not in text:
+              if marker not in text:
+                  raise SystemExit('assessment-calendar-v8 loader not found')
+              text = text.replace(marker, marker + '\n' + loader, 1)
+              p.write_text(text)
+          PY
+      - name: Commit loader
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add index.html
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "Load expanded color palette gallery"
+          git push origin HEAD:feat/assessments-weekly-tracker
