@@ -13,7 +13,7 @@
         { type: 'paper', label: 'Paper', words: ['paper', 'essay', 'report', 'reflection paper', 'research paper'] },
         { type: 'presentation', label: 'Presentation', words: ['presentation', 'presentations', 'oral presentation'] },
         { type: 'homework', label: 'Homework', words: ['homework', 'problem set', 'problem sets', 'pset', 'worksheet', 'worksheets'] },
-        { type: 'reading', label: 'Reading', words: ['reading', 'readings', 'chapter', 'chapters'] },
+        { type: 'reading', label: 'Reading', words: ['lecture note', 'lecture notes', 'class notes', 'course notes', 'reading', 'readings', 'assigned reading', 'assigned readings', 'required reading', 'required readings', 'textbook reading', 'textbook readings', 'read before class', 'chapter', 'chapters'] },
         { type: 'assignment', label: 'Assignment', words: ['assignment', 'assignments', 'exercise', 'exercises', 'discussion', 'case study', 'coding assignment', 'programming assignment'] }
     ];
 
@@ -111,7 +111,7 @@
         const normalized=normalizeForMatch(context),typeInfo=detectType(normalized),dueHits=DUE_CUES.filter(cue=>hasPhrase(normalized,cue)),negativeHits=NEGATIVE_DATE_CUES.filter(cue=>hasPhrase(normalized,cue));
         let score=0;
         if(typeInfo)score+=4; if(dueHits.length)score+=4;
-        if(/\b(?:hw|quiz|test|exam|lab|project|paper|assignment|module|week)\s*#?\s*\d+\b/i.test(context))score+=2;
+        if(/\b(?:hw|quiz|test|exam|lab|project|paper|assignment|reading|lecture\s+notes?|chapter|module|week)\s*#?\s*\d+\b/i.test(context))score+=2;
         if(/\b(?:midterm|final)\b/i.test(context))score+=2;
         if(/\b(?:schedule|calendar|week|module)\b/i.test(context)&&typeInfo)score+=1;
         score-=negativeHits.length*4;
@@ -170,7 +170,7 @@
     }
 
     function enhancedExtractedDatesMessage(dates){
-        if(!dates?.length)return 'No assignment, quiz, exam, project, lab, reading, or due-date keywords were confidently matched in the syllabus.';
+        if(!dates?.length)return 'No assignment, quiz, exam, project, lab, lecture-notes, reading, or due-date keywords were confidently matched in the syllabus.';
         const lines=dates.slice(0,20).map(item=>{ const type=String(item.type||'assignment').replace(/^./,char=>char.toUpperCase()); const confidence=item.confidence?` · ${item.confidence}% match`:''; return `${item.date.toLocaleDateString()} — [${type}] ${item.title||item.context}${confidence}`; });
         if(dates.length>20)lines.push(`...and ${dates.length-20} more extracted dates.`);
         return `Keyword-matched syllabus dates:\n\n${lines.join('\n')}`;
