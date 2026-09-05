@@ -19,7 +19,7 @@
 
     const DUE_CUES = ['due', 'deadline', 'submit', 'submission', 'turn in', 'turn-in', 'complete by', 'available until', 'closes', 'scheduled', 'takes place', 'held on', 'occurs on'];
     const NEGATIVE_DATE_CUES = ['office hours', 'instructor', 'professor', 'email', 'phone', 'room ', 'location', 'add/drop', 'add drop', 'withdrawal', 'withdraw', 'holiday', 'no class', 'break', 'course begins', 'classes begin', 'class begins', 'course ends', 'classes end', 'last day to', 'registration', 'academic calendar'];
-    const GRADE_KEYWORDS = ['homework', 'assignment', 'assignments', 'quiz', 'quizzes', 'test', 'tests', 'exam', 'exams', 'midterm', 'final', 'lab', 'labs', 'project', 'projects', 'paper', 'papers', 'essay', 'essays', 'presentation', 'presentations', 'participation', 'attendance', 'discussion', 'discussions', 'problem set', 'problem sets', 'reading', 'readings', 'portfolio'];
+    const GRADE_KEYWORDS = ['homework', 'assignment', 'assignments', 'quiz', 'quizzes', 'test', 'tests', 'exam', 'exams', 'midterm', 'final', 'lab', 'labs', 'project', 'projects', 'paper', 'papers', 'essay', 'essays', 'presentation', 'presentations', 'participation', 'attendance', 'discussion', 'discussions', 'problem set', 'problem sets', 'lecture note', 'lecture notes', 'class notes', 'course notes', 'reading', 'readings', 'assigned reading', 'required reading', 'textbook reading', 'portfolio'];
     const GRADE_NEGATIVE = ['late penalty', 'penalty', 'deduct', 'deduction', 'extra credit', 'bonus', 'plagiarism', 'attendance policy', 'similarity', 'turnitin', 'passing grade', 'minimum grade'];
     const MONTHS = { jan:0,january:0,feb:1,february:1,mar:2,march:2,apr:3,april:3,may:4,jun:5,june:5,jul:6,july:6,aug:7,august:7,sep:8,sept:8,september:8,oct:9,october:9,nov:10,november:10,dec:11,december:11 };
 
@@ -144,13 +144,16 @@
     function canonicalGradeName(raw){
         const source=normalizeSpace(raw).replace(/^[-–—:;,.\s]+|[-–—:;,.\s]+$/g,'').replace(/\b(?:weight|weights|worth|percentage|percent|of grade|course grade|grade)\b/gi,' ').replace(/\s{2,}/g,' ').trim();
         const normalized=normalizeForMatch(source);
-        const mappings=[[['homework','problem set','pset'],'Homework'],[['assignment'],'Assignments'],[['quiz'],'Quizzes'],[['test'],'Tests'],[['exam','examination'],'Exams'],[['midterm','mid-term','mid term'],'Midterm'],[['final'],'Final Exam'],[['lab','laboratory'],'Labs'],[['project','capstone'],'Projects'],[['paper','essay','report'],'Papers'],[['presentation'],'Presentations'],[['participation'],'Participation'],[['attendance'],'Attendance'],[['discussion'],'Discussions'],[['reading'],'Readings'],[['portfolio'],'Portfolio']];
+        const mappings=[[['homework','problem set','pset'],'Homework'],[['assignment'],'Assignments'],[['quiz'],'Quizzes'],[['test'],'Tests'],[['exam','examination'],'Exams'],[['midterm','mid-term','mid term'],'Midterm'],[['final'],'Final Exam'],[['lab','laboratory'],'Labs'],[['project','capstone'],'Projects'],[['paper','essay','report'],'Papers'],[['presentation'],'Presentations'],[['participation'],'Participation'],[['attendance'],'Attendance'],[['discussion'],'Discussions'],[['lecture note','lecture notes','class notes','course notes'],'Lecture Notes'],[['reading','readings','assigned reading','required reading','textbook reading'],'Readings'],[['portfolio'],'Portfolio']];
         for(const [words,label] of mappings){ if(words.some(word=>hasPhrase(normalized,word)))return label; }
         return source.replace(/\b\w/g,char=>char.toUpperCase()).slice(0,50);
     }
 
     function extractGradePair(context){
-        const normalized=cleanLine(context); if(!/%/.test(normalized)||containsAny(normalized,GRADE_NEGATIVE)||!containsAny(normalized,GRADE_KEYWORDS))return null;
+        const normalized=cleanLine(context);
+        const isReadingOrNotes=containsAny(normalized,['lecture note','lecture notes','class notes','course notes','reading','readings','assigned reading','assigned readings','required reading','required readings','textbook reading','textbook readings','read before class']);
+        if(isReadingOrNotes&&!/%/.test(normalized))return null;
+        if(!/%/.test(normalized)||containsAny(normalized,GRADE_NEGATIVE)||!containsAny(normalized,GRADE_KEYWORDS))return null;
         const percentMatches=Array.from(normalized.matchAll(/(?:^|[^\d])(\d{1,3}(?:\.\d+)?)\s*%/g));
         for(const match of percentMatches){
             const weight=Number(match[1]); if(!(weight>0&&weight<=100))continue;
