@@ -144,7 +144,7 @@
     function canonicalGradeName(raw){
         const source=normalizeSpace(raw).replace(/^[-–—:;,.\s]+|[-–—:;,.\s]+$/g,'').replace(/\b(?:weight|weights|worth|percentage|percent|of grade|course grade|grade)\b/gi,' ').replace(/\s{2,}/g,' ').trim();
         const normalized=normalizeForMatch(source);
-        const mappings=[[['homework','problem set','pset'],'Homework'],[['assignment'],'Assignments'],[['quiz'],'Quizzes'],[['test'],'Tests'],[['exam','examination'],'Exams'],[['midterm','mid-term','mid term'],'Midterm'],[['final'],'Final Exam'],[['lab','laboratory'],'Labs'],[['project','capstone'],'Projects'],[['paper','essay','report'],'Papers'],[['presentation'],'Presentations'],[['participation'],'Participation'],[['attendance'],'Attendance'],[['discussion'],'Discussions'],[['lecture note','lecture notes','class notes','course notes'],'Lecture Notes'],[['reading','readings','assigned reading','required reading','textbook reading'],'Readings'],[['portfolio'],'Portfolio']];
+        const mappings=[[['final exam','final examination','final assessment','final'],'Final Exam'],[['midterm exam','midterm examination','midterm','mid-term','mid term'],'Midterm'],[['homework','problem set','pset'],'Homework'],[['assignment'],'Assignments'],[['quiz'],'Quizzes'],[['test'],'Tests'],[['exam','examination'],'Exams'],[['lab','laboratory'],'Labs'],[['project','capstone'],'Projects'],[['paper','essay','report'],'Papers'],[['presentation'],'Presentations'],[['participation'],'Participation'],[['attendance'],'Attendance'],[['discussion'],'Discussions'],[['lecture note','lecture notes','class notes','course notes'],'Lecture Notes'],[['reading','readings','assigned reading','required reading','textbook reading'],'Readings'],[['portfolio'],'Portfolio']];
         for(const [words,label] of mappings){ if(words.some(word=>hasPhrase(normalized,word)))return label; }
         return source.replace(/\b\w/g,char=>char.toUpperCase()).slice(0,50);
     }
@@ -154,6 +154,10 @@
         const isReadingOrNotes=containsAny(normalized,['lecture note','lecture notes','class notes','course notes','reading','readings','assigned reading','assigned readings','required reading','required readings','textbook reading','textbook readings','read before class']);
         if(isReadingOrNotes&&!/%/.test(normalized))return null;
         if(!/%/.test(normalized)||containsAny(normalized,GRADE_NEGATIVE)||!containsAny(normalized,GRADE_KEYWORDS))return null;
+        const explicitFinal=normalized.match(/\b(final\s+(?:exam|examination)|final)\b\s*(?:[:\-–—]\s*)?\(?\s*(\d{1,3}(?:\.\d+)?)\s*%\s*\)?/i);
+        if(explicitFinal){ const weight=Number(explicitFinal[2]); if(weight>0&&weight<=100)return {name:'Final Exam',weight,context:normalized}; }
+        const explicitMidterm=normalized.match(/\b(midterm(?:\s+(?:exam|examination))?|mid-term|mid term)\b\s*(?:[:\-–—]\s*)?\(?\s*(\d{1,3}(?:\.\d+)?)\s*%\s*\)?/i);
+        if(explicitMidterm){ const weight=Number(explicitMidterm[2]); if(weight>0&&weight<=100)return {name:'Midterm',weight,context:normalized}; }
         const percentMatches=Array.from(normalized.matchAll(/(?:^|[^\d])(\d{1,3}(?:\.\d+)?)\s*%/g));
         for(const match of percentMatches){
             const weight=Number(match[1]); if(!(weight>0&&weight<=100))continue;
