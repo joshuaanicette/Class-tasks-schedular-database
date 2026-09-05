@@ -153,3 +153,13 @@
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => setTimeout(init, 420));
     else setTimeout(init, 420);
 })();
+
+// Load the syllabus keyword parser without modifying the monolithic index.html.
+(function loadSyllabusKeywordEnhancement() {
+    if (document.querySelector('script[data-syllabus-keyword-v10]')) return;
+    const script = document.createElement('script');
+    script.src = './syllabus-keyword-v10.js';
+    script.dataset.syllabusKeywordV10 = 'true';
+    script.defer = true;
+    document.head.appendChild(script);
+})();
