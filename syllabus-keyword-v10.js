@@ -194,7 +194,7 @@
             try{
                 const fullText=await extractPdfText(file); this.syllabusText=fullText;
                 const categories=parseGradeCategoriesKeyword(fullText),dates=parseDatesKeyword(fullText);
-                if(categories.length>0){this.tempCategories=categories;this.renderGradeCategories?.();}
+                if(categories.length>0){this.tempCategories=categories;this.renderCategories?.();}
                 this.extractedDates=dates;
                 const assessmentCount=dates.filter(item=>['quiz','test','exam','midterm','final'].includes(item.type)).length,typeCount=new Set(dates.map(item=>item.type)).size;
                 if(uploadDiv)uploadDiv.innerHTML=`<p style="color: var(--success);">✓ Syllabus analyzed with keyword matching</p><p style="font-size: 0.9em; margin-top: 10px; color: var(--text-secondary);">Found ${categories.length} grade categories, ${dates.length} likely due/scheduled dates, ${assessmentCount} assessments, across ${typeCount} task types</p><button type="button" style="margin-top: 10px; padding: 8px 15px; background: var(--info); color: white; border: none; border-radius: 6px; cursor: pointer;" onclick="taskScheduler.showExtractedDates()">View Keyword Matches</button>`;
