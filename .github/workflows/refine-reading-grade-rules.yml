@@ -1,0 +1,54 @@
+name: Refine reading and lecture-note grade rules
+
+on:
+  push:
+    branches:
+      - feat/syllabus-keyword-extraction
+    paths:
+      - '.github/workflows/refine-reading-grade-rules.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: feat/syllabus-keyword-extraction
+      - name: Refine reading and lecture-note grade parsing
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('syllabus-keyword-v10.js')
+          text = p.read_text()
+
+          old = "const GRADE_KEYWORDS = ['homework', 'assignment', 'assignments', 'quiz', 'quizzes', 'test', 'tests', 'exam', 'exams', 'midterm', 'final', 'lab', 'labs', 'project', 'projects', 'paper', 'papers', 'essay', 'essays', 'presentation', 'presentations', 'participation', 'attendance', 'discussion', 'discussions', 'problem set', 'problem sets', 'reading', 'readings', 'portfolio'];"
+          new = "const GRADE_KEYWORDS = ['homework', 'assignment', 'assignments', 'quiz', 'quizzes', 'test', 'tests', 'exam', 'exams', 'midterm', 'final', 'lab', 'labs', 'project', 'projects', 'paper', 'papers', 'essay', 'essays', 'presentation', 'presentations', 'participation', 'attendance', 'discussion', 'discussions', 'problem set', 'problem sets', 'lecture note', 'lecture notes', 'class notes', 'course notes', 'reading', 'readings', 'assigned reading', 'required reading', 'textbook reading', 'portfolio'];"
+          if old not in text:
+              raise SystemExit('GRADE_KEYWORDS line not found')
+          text = text.replace(old, new, 1)
+
+          old_map = "[['discussion'],'Discussions'],[['reading'],'Readings'],[['portfolio'],'Portfolio']"
+          new_map = "[['discussion'],'Discussions'],[['lecture note','lecture notes','class notes','course notes'],'Lecture Notes'],[['reading','readings','assigned reading','required reading','textbook reading'],'Readings'],[['portfolio'],'Portfolio']"
+          if old_map not in text:
+              raise SystemExit('grade canonical mapping not found')
+          text = text.replace(old_map, new_map, 1)
+
+          old_fn = "function extractGradePair(context){\n        const normalized=cleanLine(context); if(!/%/.test(normalized)||containsAny(normalized,GRADE_NEGATIVE)||!containsAny(normalized,GRADE_KEYWORDS))return null;"
+          new_fn = "function extractGradePair(context){\n        const normalized=cleanLine(context);\n        const isReadingOrNotes=containsAny(normalized,['lecture note','lecture notes','class notes','course notes','reading','readings','assigned reading','assigned readings','required reading','required readings','textbook reading','textbook readings','read before class']);\n        if(isReadingOrNotes&&!/%/.test(normalized))return null;\n        if(!/%/.test(normalized)||containsAny(normalized,GRADE_NEGATIVE)||!containsAny(normalized,GRADE_KEYWORDS))return null;"
+          if old_fn not in text:
+              raise SystemExit('extractGradePair header not found')
+          text = text.replace(old_fn, new_fn, 1)
+
+          p.write_text(text)
+          PY
+      - name: Commit rule update and remove workflow
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add syllabus-keyword-v10.js
+          git rm .github/workflows/refine-reading-grade-rules.yml
+          git commit -m "Require percentages for reading and lecture-note grade categories"
+          git push origin HEAD:feat/syllabus-keyword-extraction
