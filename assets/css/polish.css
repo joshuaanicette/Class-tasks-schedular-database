@@ -4,9 +4,10 @@
   --radius-control: 10px;
   --shadow-soft: 0 4px 20px rgb(15 23 42 / 5%);
   --shadow-hover: 0 6px 24px rgb(15 23 42 / 8%);
+  --header-text: #ffffff;
 }
 body {
-  background: color-mix(in srgb, var(--card-bg) 96%, var(--primary-bg)) !important;
+  background: linear-gradient(135deg, var(--primary-bg), var(--secondary-bg)) !important;
   color: var(--text-primary);
   font-size: 1rem;
   padding: 24px !important;
@@ -25,8 +26,8 @@ body {
   padding: 26px 32px !important;
   border-radius: 20px 20px 0 0;
   border-bottom: 1px solid var(--border-color);
-  background: var(--card-bg);
-  color: var(--text-primary);
+  background: var(--primary-bg);
+  color: var(--header-text);
   overflow: visible;
 }
 .header::after {
@@ -37,7 +38,7 @@ body {
   font-weight: 750 !important;
 }
 .header > p {
-  color: var(--text-secondary);
+  color: var(--header-text);
   font-size: 0.9375rem;
   grid-column: 1;
 }
@@ -51,30 +52,33 @@ body {
 }
 .icon-btn,
 .sync-status {
-  background: var(--hover-bg);
-  color: var(--text-primary);
-  border: 1px solid var(--border-color);
+  background: color-mix(in srgb, var(--header-text) 12%, var(--primary-bg));
+  color: var(--header-text);
+  border: 1px solid color-mix(in srgb, var(--header-text) 30%, var(--primary-bg));
   border-radius: var(--radius-control);
   min-height: 44px;
   font-size: 0.875rem;
 }
 .icon-btn:hover,
 .sync-status:hover {
-  background: var(--surface-soft);
-  border-color: var(--accent);
+  background: color-mix(in srgb, var(--header-text) 20%, var(--primary-bg));
+  border-color: var(--header-text);
 }
 .academic-horizon-pill {
   grid-column: 1;
   justify-self: start;
   flex-wrap: wrap;
-  border-color: var(--border-color);
-  background: var(--hover-bg);
+  border-color: color-mix(in srgb, var(--header-text) 30%, var(--primary-bg));
+  background: color-mix(in srgb, var(--header-text) 12%, var(--primary-bg));
   font-size: 0.875rem;
   border-radius: 8px;
-  color: var(--text-secondary);
+  color: var(--header-text);
 }
 .academic-horizon-pill .current-semester {
-  border-color: var(--border-color);
+  border-color: color-mix(in srgb, var(--header-text) 30%, var(--primary-bg));
+  color: var(--header-text);
+}
+.user-dropdown {
   color: var(--text-primary);
 }
 .search-bar {
