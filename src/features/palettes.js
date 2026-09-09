@@ -425,6 +425,25 @@
 
   const ALL_CLASSES = PALETTES.map((p) => p.className).filter(Boolean);
   const MOBILE_BREAKPOINT = 680;
+  const THEME_TOKENS = {
+    primary: '--primary-bg',
+    secondary: '--secondary-bg',
+    accent: '--accent',
+    accentLight: '--accent-light',
+    card: '--card-bg',
+    text: '--text-primary',
+    textSecondary: '--text-secondary',
+    border: '--border-color',
+    hover: '--hover-bg',
+  };
+
+  function savedPalette() {
+    try {
+      return localStorage.getItem('selectedTheme') || 'default';
+    } catch {
+      return 'default';
+    }
+  }
 
   const { escapeHtml } = window.SchedulerUtils;
 
@@ -440,14 +459,14 @@
       .join('');
     style.textContent = `${themeCss}
             body[data-palette-managed="true"] .container{background:color-mix(in srgb,var(--card-bg) 96%,transparent)!important}
-            .theme-menu.v9-palette-gallery{position:fixed!important;z-index:100000!important;right:auto!important;bottom:auto!important;width:min(1040px,calc(100vw - 24px));min-width:0!important;max-height:calc(100dvh - 24px)!important;padding:14px!important;border:1px solid var(--border-color)!important;border-radius:16px!important;background:var(--card-bg)!important;box-shadow:0 24px 70px rgba(0,0,0,.34)!important;overflow-x:hidden!important;overflow-y:auto!important;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y;isolation:isolate}
+            .theme-menu.v9-palette-gallery{position:fixed!important;z-index:100000!important;right:auto!important;bottom:auto!important;width:min(1040px,calc(100vw - 24px));min-width:0!important;max-height:var(--palette-available-height,calc(100dvh - 24px))!important;padding:14px!important;border:1px solid var(--border-color)!important;border-radius:16px!important;background:var(--card-bg)!important;box-shadow:0 24px 70px rgba(0,0,0,.34)!important;overflow-x:hidden!important;overflow-y:auto!important;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;touch-action:pan-y;isolation:isolate}
             .theme-menu.v9-palette-gallery.show{display:block!important}
             .v9-palette-header{position:sticky;top:-14px;z-index:3;display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin:-14px -14px 12px;padding:14px 14px 10px;border-bottom:1px solid var(--border-color);background:var(--card-bg)}
             .v9-palette-heading{min-width:0;flex:1}.v9-palette-header-actions{display:flex;align-items:center;gap:8px;flex:0 0 auto}.v9-palette-header h3{margin:0;color:var(--text-primary);font-size:1rem;line-height:1.25}.v9-palette-header p{margin:3px 0 0;color:var(--text-secondary);font-size:.72rem;line-height:1.35}.v9-palette-count{padding:5px 8px;border-radius:999px;background:var(--hover-bg);color:var(--text-secondary);font-size:.68rem;font-weight:800;white-space:nowrap}.v9-palette-close{width:34px;height:34px;min-width:34px;padding:0;border:1px solid var(--border-color);border-radius:10px;background:var(--hover-bg);color:var(--text-primary);font-size:1.15rem;line-height:1;cursor:pointer;touch-action:manipulation}
             .v9-palette-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}.v9-palette-card{position:relative;display:grid;grid-template-columns:100px 1fr;gap:9px;align-items:center;width:100%;min-width:0;min-height:68px;padding:9px;border:1px solid var(--border-color);border-radius:12px;background:var(--card-bg);color:var(--text-primary);text-align:left;cursor:pointer;transition:.15s ease;touch-action:manipulation;-webkit-tap-highlight-color:transparent}.v9-palette-card:hover{transform:translateY(-1px);border-color:var(--accent);box-shadow:0 7px 18px rgba(15,23,42,.10)}.v9-palette-card.selected{border:2px solid var(--accent);box-shadow:0 0 0 2px color-mix(in srgb,var(--accent) 16%,transparent)}
             .v9-palette-preview{height:48px;border-radius:9px;overflow:hidden;border:1px solid var(--border-color);display:grid;grid-template-rows:1fr 11px}.v9-palette-gradient{background:var(--palette-gradient)}.v9-palette-swatches{display:grid;grid-template-columns:repeat(4,1fr)}.v9-palette-copy{min-width:0}.v9-palette-name-row{display:flex;align-items:center;gap:5px;flex-wrap:wrap;padding-right:20px}.v9-palette-copy strong{font-size:.75rem;line-height:1.2}.v9-palette-copy small{display:block;margin-top:2px;color:var(--text-secondary);font-size:.63rem;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.v9-palette-badge{padding:2px 5px;border-radius:999px;background:var(--hover-bg);border:1px solid var(--border-color);font-size:.52rem;font-weight:750}.v9-palette-new{color:var(--accent)}.v9-palette-check{position:absolute;top:6px;right:6px;width:18px;height:18px;border-radius:50%;display:none;align-items:center;justify-content:center;background:var(--accent);color:#fff;font-size:.62rem;font-weight:900}.v9-palette-card.selected .v9-palette-check{display:flex}
             @media(max-width:980px){.v9-palette-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-            @media(max-width:${MOBILE_BREAKPOINT}px){body.v9-palette-open{overflow:hidden!important;touch-action:none}.theme-menu.v9-palette-gallery{left:max(8px,env(safe-area-inset-left))!important;right:max(8px,env(safe-area-inset-right))!important;top:max(8px,env(safe-area-inset-top))!important;bottom:max(8px,env(safe-area-inset-bottom))!important;width:auto!important;height:auto!important;max-height:none!important;padding:10px!important;border-radius:18px!important}.v9-palette-header{top:-10px;margin:-10px -10px 9px;padding:11px 10px 9px;align-items:center}.v9-palette-header p{display:none}.v9-palette-count{font-size:.62rem;padding:4px 7px}.v9-palette-close{width:40px;height:40px;min-width:40px;font-size:1.25rem}.v9-palette-grid{grid-template-columns:1fr;gap:8px}.v9-palette-card{grid-template-columns:86px minmax(0,1fr);min-height:72px;padding:8px;gap:9px;border-radius:12px}.v9-palette-preview{height:50px}.v9-palette-copy strong{font-size:.82rem}.v9-palette-copy small{font-size:.68rem}.v9-palette-badge{font-size:.56rem}.v9-palette-button-label{display:none}}
+            @media(max-width:${MOBILE_BREAKPOINT}px){body.v9-palette-open{overflow:hidden!important;}.theme-menu.v9-palette-gallery{left:max(8px,env(safe-area-inset-left))!important;right:max(8px,env(safe-area-inset-right))!important;top:max(8px,env(safe-area-inset-top))!important;bottom:max(8px,env(safe-area-inset-bottom))!important;width:auto!important;height:auto!important;max-height:none!important;padding:10px!important;border-radius:18px!important}.v9-palette-header{top:-10px;margin:-10px -10px 9px;padding:11px 10px 9px;align-items:center}.v9-palette-header p{display:none}.v9-palette-count{font-size:.62rem;padding:4px 7px}.v9-palette-close{width:40px;height:40px;min-width:40px;font-size:1.25rem}.v9-palette-grid{grid-template-columns:1fr;gap:8px}.v9-palette-card{grid-template-columns:86px minmax(0,1fr);min-height:72px;padding:8px;gap:9px;border-radius:12px}.v9-palette-preview{height:50px}.v9-palette-copy strong{font-size:.82rem}.v9-palette-copy small{font-size:.68rem}.v9-palette-badge{font-size:.56rem}.v9-palette-button-label{display:none}}
             @media(max-width:430px){.theme-menu.v9-palette-gallery{left:max(6px,env(safe-area-inset-left))!important;right:max(6px,env(safe-area-inset-right))!important;top:max(6px,env(safe-area-inset-top))!important;bottom:max(6px,env(safe-area-inset-bottom))!important;padding:8px!important;border-radius:15px!important}.v9-palette-header{top:-8px;margin:-8px -8px 7px;padding:10px 8px 8px}.v9-palette-header h3{font-size:.92rem}.v9-palette-count{display:none}.v9-palette-card{grid-template-columns:70px minmax(0,1fr);min-height:64px;padding:7px;gap:8px}.v9-palette-preview{height:44px;border-radius:8px}.v9-palette-copy small{white-space:normal;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical}.v9-palette-new{display:none}}
             @media(max-width:350px){.v9-palette-card{grid-template-columns:58px minmax(0,1fr)}.v9-palette-preview{height:40px}.v9-palette-copy strong{font-size:.76rem}.v9-palette-copy small{display:none}.v9-palette-badge{font-size:.5rem;padding:1px 4px}}
             @media(orientation:landscape) and (max-height:540px) and (max-width:950px){.theme-menu.v9-palette-gallery{left:max(6px,env(safe-area-inset-left))!important;right:max(6px,env(safe-area-inset-right))!important;top:max(6px,env(safe-area-inset-top))!important;bottom:max(6px,env(safe-area-inset-bottom))!important;max-height:none!important}.v9-palette-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}.v9-palette-card{grid-template-columns:68px minmax(0,1fr);min-height:58px;padding:6px}.v9-palette-preview{height:40px}.v9-palette-copy small{display:none}.v9-palette-header{padding-top:8px;padding-bottom:7px}}
@@ -462,10 +481,11 @@
   function render() {
     const menu = document.getElementById('themeMenu');
     if (!menu) return;
-    const selected = localStorage.getItem('selectedTheme') || 'default';
+    const selected = savedPalette();
     menu.classList.add('v9-palette-gallery');
     menu.setAttribute('role', 'dialog');
     menu.setAttribute('aria-label', 'Color palette chooser');
+    menu.setAttribute('aria-modal', 'true');
     menu.innerHTML = `<div class="v9-palette-header"><div class="v9-palette-heading"><h3>🎨 All Color Palettes</h3><p>All 21 palettes are shown together in one scrollable panel.</p></div><div class="v9-palette-header-actions"><span class="v9-palette-count">${PALETTES.length} palettes</span><button type="button" class="v9-palette-close" aria-label="Close color palette chooser">×</button></div></div><div class="v9-palette-grid">${PALETTES.map((p) => card(p, selected)).join('')}</div>`;
     menu.querySelectorAll('[data-v9-palette]').forEach((el) =>
       el.addEventListener('click', (e) => {
@@ -499,7 +519,7 @@
       menu.style.removeProperty('width');
       menu.style.removeProperty('left');
       menu.style.removeProperty('top');
-      menu.style.removeProperty('max-height');
+      menu.style.removeProperty('--palette-available-height');
       return;
     }
     const margin = 12;
@@ -513,11 +533,11 @@
     let top = rect.bottom + 8;
     const viewportBottom = viewport.offsetTop + viewport.height;
     if (top > viewportBottom - 280) top = viewport.offsetTop + margin;
-    const availableHeight = Math.max(260, viewportBottom - top - margin);
+    const availableHeight = Math.max(0, viewportBottom - top - margin);
     menu.style.width = `${width}px`;
     menu.style.left = `${left}px`;
     menu.style.top = `${top}px`;
-    menu.style.maxHeight = `${availableHeight}px`;
+    menu.style.setProperty('--palette-available-height', `${availableHeight}px`);
   }
 
   function setOpenState(open) {
@@ -546,7 +566,18 @@
     document.body.classList.remove(...ALL_CLASSES);
     if (p.className) document.body.classList.add(p.className);
     document.body.dataset.paletteManaged = 'true';
-    localStorage.setItem('selectedTheme', p.id);
+    // Root-level derived colors and body-level legacy theme rules must use the same palette.
+    for (const [key, property] of Object.entries(THEME_TOKENS)) {
+      document.documentElement.style.setProperty(property, p.vars[key]);
+      document.body.style.setProperty(property, p.vars[key]);
+    }
+    document.documentElement.style.colorScheme = p.mode.toLowerCase();
+    document.body.dataset.palette = p.id;
+    try {
+      localStorage.setItem('selectedTheme', p.id);
+    } catch {
+      // Palette selection still works when browser storage is unavailable.
+    }
     document.querySelector('meta[name="theme-color"]')?.setAttribute('content', p.vars.accent);
     document.querySelectorAll('[data-v9-palette]').forEach((el) => {
       const selected = el.dataset.v9Palette === p.id;
@@ -583,6 +614,18 @@
     window.visualViewport?.addEventListener('scroll', refit);
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape' && menu.classList.contains('show')) closeMenu();
+      if (e.key === 'Tab' && menu.classList.contains('show')) {
+        const controls = [...menu.querySelectorAll('button')];
+        const first = controls[0];
+        const last = controls.at(-1);
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last?.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first?.focus();
+        }
+      }
     });
   }
 
@@ -593,10 +636,14 @@
       button.innerHTML = '🎨 <span class="v9-palette-button-label">Palettes</span>';
       button.title = 'Open Color Palette Gallery';
       button.setAttribute('aria-haspopup', 'dialog');
+      button.setAttribute('aria-controls', 'themeMenu');
+      button.setAttribute('aria-expanded', 'false');
+      button.removeAttribute('onclick');
+      button.addEventListener('click', () => window.toggleThemeMenu());
     }
     render();
     installDropdownBehavior();
-    apply(localStorage.getItem('selectedTheme') || 'default', { silent: true, keepOpen: true });
+    apply(savedPalette(), { silent: true, keepOpen: true });
     window.changeTheme = (theme) => apply(theme);
     window.schedulerPalettes = PALETTES.map((p) => ({
       id: p.id,

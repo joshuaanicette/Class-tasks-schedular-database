@@ -156,3 +156,76 @@ test('backup import hydrates dates and rejects malformed collections before chan
   app.importData();
   assert.equal(app.tasks[0].id, 3);
 });
+
+test('all palette cards update theme colors, selection, and storage through real click handlers', (t) => {
+  const { window } = boot(t);
+  const { document } = window;
+  const button = document.querySelector('.theme-selector .icon-btn');
+  const menu = document.getElementById('themeMenu');
+  for (const palette of window.schedulerPalettes) {
+    button.click();
+    assert.equal(menu.classList.contains('show'), true);
+    const card = menu.querySelector(`[data-v9-palette="${palette.id}"]`);
+    card.querySelector('strong').click();
+    assert.equal(document.body.dataset.palette, palette.id);
+    assert.equal(window.localStorage.getItem('selectedTheme'), palette.id);
+    assert.equal(document.documentElement.style.colorScheme, palette.mode.toLowerCase());
+    assert.equal(menu.querySelectorAll('[aria-pressed="true"]').length, 1);
+    assert.equal(card.getAttribute('aria-pressed'), 'true');
+    assert.equal(menu.classList.contains('show'), false);
+    for (const property of [
+      '--primary-bg',
+      '--secondary-bg',
+      '--accent',
+      '--accent-light',
+      '--card-bg',
+      '--text-primary',
+      '--text-secondary',
+      '--border-color',
+      '--hover-bg',
+    ]) {
+      const value = document.documentElement.style.getPropertyValue(property);
+      assert.match(value, /^#[\da-f]{6}$/i);
+      assert.equal(document.body.style.getPropertyValue(property), value);
+    }
+  }
+  window.changeTheme('default');
+  assert.equal(document.documentElement.style.getPropertyValue('--accent'), '#2563eb');
+  assert.equal(document.documentElement.style.getPropertyValue('--card-bg'), '#ffffff');
+});
+
+test('saved dark palette restores, and blocked storage does not prevent changing colors', (t) => {
+  const { window } = boot(t, { selectedTheme: 'cobalt-theme' });
+  assert.equal(window.document.body.dataset.palette, 'cobalt-theme');
+  assert.equal(window.document.documentElement.style.getPropertyValue('--card-bg'), '#111827');
+  assert.equal(window.document.documentElement.style.colorScheme, 'dark');
+  window.Storage.prototype.setItem = () => {
+    throw new Error('Storage unavailable');
+  };
+  assert.doesNotThrow(() => window.changeTheme('default'));
+  assert.equal(window.document.body.dataset.palette, 'default');
+  assert.equal(window.document.documentElement.style.colorScheme, 'light');
+});
+
+test('palette menu supports close, Escape, outside click, focus return, and mobile scroll unlock', (t) => {
+  const { window } = boot(t);
+  Object.defineProperty(window, 'innerWidth', { value: 390 });
+  const { document } = window;
+  const button = document.querySelector('.theme-selector .icon-btn');
+  const menu = document.getElementById('themeMenu');
+  for (const close of [
+    () => menu.querySelector('.v9-palette-close').click(),
+    () => document.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'Escape' })),
+    () => document.body.click(),
+  ]) {
+    button.click();
+    assert.equal(document.body.classList.contains('v9-palette-open'), true);
+    assert.equal(button.getAttribute('aria-expanded'), 'true');
+    assert.equal(document.activeElement, menu.querySelector('.v9-palette-close'));
+    close();
+    assert.equal(menu.classList.contains('show'), false);
+    assert.equal(document.body.classList.contains('v9-palette-open'), false);
+    assert.equal(button.getAttribute('aria-expanded'), 'false');
+    assert.equal(document.activeElement, button);
+  }
+});
