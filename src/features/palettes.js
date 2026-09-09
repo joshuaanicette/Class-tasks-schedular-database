@@ -6,20 +6,20 @@
     [
       'default',
       '',
-      'Campus',
+      'Classic Blue',
       'Light',
-      'Navy, clear blue, and crisp white',
-      ['#0f172a', '#1e3a5f', '#2563eb', '#3b82f6'],
+      'Cyan-to-blue header and pale blue surfaces',
+      ['#0575e6', '#021b79', '#00d2ff', '#3a7bd5'],
       [
-        '#0f172a',
-        '#1e3a5f',
-        '#2563eb',
-        '#3b82f6',
+        '#0575e6',
+        '#021b79',
+        '#00d2ff',
+        '#3a7bd5',
         '#ffffff',
-        '#172033',
-        '#526078',
-        '#dfe5ee',
-        '#f4f7fb',
+        '#1a1a1a',
+        '#555555',
+        '#d0e7ff',
+        '#e6f3ff',
       ],
     ],
     [
@@ -580,7 +580,10 @@
       document.documentElement.style.setProperty(property, p.vars[key]);
       document.body.style.setProperty(property, p.vars[key]);
     }
-    document.documentElement.style.setProperty('--header-text', headerTextColor(p.vars.primary));
+    document.documentElement.style.setProperty(
+      '--header-text',
+      ['default', 'ocean-theme'].includes(p.id) ? '#ffffff' : headerTextColor(p.vars.accent),
+    );
     document.documentElement.style.colorScheme = p.mode.toLowerCase();
     document.body.dataset.palette = p.id;
     try {

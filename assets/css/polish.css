@@ -1,109 +1,133 @@
-/* Shared layout and interaction rules. Palette colors remain user-selectable. */
+/* Reference layout: gradient masthead, rounded navigation, and roomy form panels. */
 :root {
-  --radius-panel: 16px;
+  --radius-panel: 18px;
   --radius-control: 10px;
   --shadow-soft: 0 4px 20px rgb(15 23 42 / 5%);
   --shadow-hover: 0 6px 24px rgb(15 23 42 / 8%);
   --header-text: #ffffff;
+  --workspace-bg: color-mix(in srgb, var(--card-bg) 96%, var(--accent) 4%);
 }
 body {
   background: linear-gradient(135deg, var(--primary-bg), var(--secondary-bg)) !important;
   color: var(--text-primary);
   font-size: 1rem;
-  padding: 24px !important;
+  padding: 0 !important;
   line-height: 1.55;
 }
 .container {
+  max-width: none !important;
+  min-height: 100dvh;
+  width: 100%;
   border: 1px solid var(--border-color);
   border-radius: 20px !important;
   overflow: visible;
   box-shadow: var(--shadow-soft) !important;
 }
 .header {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  column-gap: 24px;
-  padding: 26px 32px !important;
+  display: block;
+  padding: 32px 26px 28px !important;
   border-radius: 20px 20px 0 0;
   border-bottom: 1px solid var(--border-color);
-  background: var(--primary-bg);
+  background: linear-gradient(110deg, var(--accent), var(--accent-light));
   color: var(--header-text);
   overflow: visible;
 }
 .header::after {
-  content: none;
+  content: '';
+  position: absolute;
+  width: 170px;
+  height: 110px;
+  right: 0;
+  bottom: 0;
+  border-radius: 100% 0 0 0;
+  background: rgb(255 255 255 / 12%);
+  pointer-events: none;
+}
+.header > :not(.header-controls) {
+  position: relative;
+  z-index: 1;
 }
 .header h1 {
-  font-size: clamp(1.5rem, 2.6vw, 2rem) !important;
+  font-size: clamp(2rem, 3vw, 2.55rem) !important;
   font-weight: 750 !important;
+  line-height: 1.2;
+  padding-right: 430px;
+  margin-bottom: 8px !important;
 }
 .header > p {
   color: var(--header-text);
-  font-size: 0.9375rem;
-  grid-column: 1;
+  font-size: 1.1rem;
+  max-width: none;
+  opacity: 1;
 }
 .header-controls {
-  position: static;
-  grid-column: 2;
-  grid-row: 1 / 4;
-  align-self: start;
+  position: absolute;
+  top: 16px;
+  right: 30px;
+  left: auto;
+  bottom: auto;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 .icon-btn,
 .sync-status {
-  background: color-mix(in srgb, var(--header-text) 12%, var(--primary-bg));
+  background: rgb(255 255 255 / 18%);
   color: var(--header-text);
-  border: 1px solid color-mix(in srgb, var(--header-text) 30%, var(--primary-bg));
+  border: 2px solid rgb(255 255 255 / 30%);
   border-radius: var(--radius-control);
-  min-height: 44px;
+  min-height: 42px;
   font-size: 0.875rem;
 }
 .icon-btn:hover,
 .sync-status:hover {
-  background: color-mix(in srgb, var(--header-text) 20%, var(--primary-bg));
+  background: rgb(255 255 255 / 28%);
   border-color: var(--header-text);
 }
 .academic-horizon-pill {
-  grid-column: 1;
-  justify-self: start;
   flex-wrap: wrap;
-  border-color: color-mix(in srgb, var(--header-text) 30%, var(--primary-bg));
-  background: color-mix(in srgb, var(--header-text) 12%, var(--primary-bg));
+  margin-top: 14px;
+  border-color: rgb(255 255 255 / 30%);
+  background: rgb(255 255 255 / 18%);
   font-size: 0.875rem;
-  border-radius: 8px;
+  border-radius: 999px;
   color: var(--header-text);
 }
 .academic-horizon-pill .current-semester {
-  border-color: color-mix(in srgb, var(--header-text) 30%, var(--primary-bg));
+  border-color: rgb(255 255 255 / 30%);
   color: var(--header-text);
 }
 .user-dropdown {
   color: var(--text-primary);
 }
+.sync-status {
+  border-radius: 999px;
+}
 .search-bar {
-  padding: 20px 32px;
-  background: var(--card-bg);
+  padding: 20px 26px;
+  background: var(--hover-bg);
 }
 .search-input {
-  background: var(--hover-bg);
-  padding: 13px 16px;
+  background: var(--card-bg);
+  padding: 15px 20px;
   font-size: 1rem;
 }
 .tab-container {
-  padding: 0 24px !important;
+  padding: 10px !important;
   gap: 8px;
   background: var(--card-bg) !important;
 }
 .tab {
-  padding: 16px 12px !important;
-  border-radius: 0 !important;
-  font-size: 0.9375rem;
+  padding: 10px 16px !important;
+  border-radius: 10px !important;
+  font-size: 1.1rem;
+  font-weight: 700;
+  border: 1px solid transparent;
   border-bottom: 3px solid transparent;
 }
 .tab.active {
-  background: transparent;
-  color: var(--text-primary);
+  background: var(--card-bg);
+  color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 40%, var(--border-color));
   border-bottom-color: var(--accent);
   box-shadow: none;
 }
@@ -112,6 +136,8 @@ body {
   background: var(--hover-bg);
 }
 .main-content {
+  padding: 32px 28px !important;
+  background: var(--workspace-bg);
   gap: 24px;
   min-width: 0;
 }
@@ -130,24 +156,24 @@ body {
 .sync-section {
   border-radius: var(--radius-panel) !important;
   background: var(--card-bg);
-  padding: 24px;
+  padding: 30px;
 }
 .form-section h2,
 .tasks-header h2 {
-  font-size: 1.25rem;
+  font-size: 1.8rem;
   letter-spacing: -0.015em;
   color: var(--text-primary);
 }
 .form-group label {
-  font-size: 0.875rem;
-  color: var(--text-primary);
+  font-size: 1rem;
+  color: var(--text-secondary);
   font-weight: 600;
 }
 input,
 select,
 textarea {
   font: inherit;
-  border-width: 1px;
+  border-width: 2px;
   border-radius: var(--radius-control) !important;
 }
 input:not([type='checkbox']):not([type='radio']),
@@ -262,13 +288,12 @@ button:disabled {
   outline: 3px solid var(--accent) !important;
   outline-offset: 3px;
 }
-@media (max-width: 1100px) {
-  .header {
-    grid-template-columns: 1fr;
+@media (max-width: 1200px) {
+  .header h1 {
+    padding-right: 0;
   }
   .header-controls {
-    grid-column: 1;
-    grid-row: auto;
+    position: static;
     margin-top: 18px;
   }
 }
@@ -288,7 +313,7 @@ button:disabled {
     padding: 16px 18px;
   }
   .tab-container {
-    padding: 0 12px !important;
+    padding: 10px 12px !important;
   }
   .main-content {
     padding: 18px !important;

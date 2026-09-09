@@ -190,7 +190,7 @@ test('all palette cards update theme colors, selection, and storage through real
     }
   }
   window.changeTheme('default');
-  assert.equal(document.documentElement.style.getPropertyValue('--accent'), '#2563eb');
+  assert.equal(document.documentElement.style.getPropertyValue('--accent'), '#00d2ff');
   assert.equal(document.documentElement.style.getPropertyValue('--card-bg'), '#ffffff');
   assert.equal(document.documentElement.style.getPropertyValue('--header-text'), '#ffffff');
   window.changeTheme('arctic-theme');
