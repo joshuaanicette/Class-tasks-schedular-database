@@ -56,6 +56,21 @@ const saved = {
   taskSchedulerTasks: JSON.stringify([task]),
 };
 
+test('summary blocks share the header gradient and use fully opaque white text', (t) => {
+  const css = fs.readFileSync('assets/css/polish.css', 'utf8');
+  const dom = new JSDOM(`<style>${css}</style>`);
+  t.after(() => dom.window.close());
+  const rules = [...dom.window.document.styleSheets[0].cssRules];
+  const styleFor = (selector) =>
+    rules.filter((rule) => rule.selectorText === selector).at(-1).style;
+  assert.equal(styleFor('.header').getPropertyValue('background'), 'var(--header-gradient)');
+  assert.equal(styleFor('.stat-item').getPropertyValue('background'), 'var(--header-gradient)');
+  const textRule = rules.find((rule) => rule.selectorText?.includes('.stat-item .stat-number'));
+  assert.equal(textRule.style.getPropertyValue('color'), 'var(--header-text)');
+  assert.equal(textRule.style.getPropertyValue('opacity'), '1');
+  assert.equal(styleFor(':root').getPropertyValue('--header-text'), '#ffffff');
+});
+
 test('complete app starts with all features when external SDKs are unavailable', (t) => {
   const { app, window } = boot(t);
   assert.equal(app.courses.length, 0);

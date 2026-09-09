@@ -5,6 +5,7 @@
   --shadow-soft: 0 4px 20px rgb(15 23 42 / 5%);
   --shadow-hover: 0 6px 24px rgb(15 23 42 / 8%);
   --header-text: #ffffff;
+  --header-gradient: linear-gradient(110deg, var(--accent), var(--accent-light));
   --workspace-bg: color-mix(in srgb, var(--card-bg) 96%, var(--accent) 4%);
 }
 body {
@@ -28,7 +29,7 @@ body {
   padding: 32px 26px 28px !important;
   border-radius: 20px 20px 0 0;
   border-bottom: 1px solid var(--border-color);
-  background: linear-gradient(110deg, var(--accent), var(--accent-light));
+  background: var(--header-gradient);
   color: var(--header-text);
   overflow: visible;
 }
@@ -216,10 +217,16 @@ button:disabled {
   gap: 12px;
 }
 .stat-item {
-  background: var(--hover-bg);
+  background: var(--header-gradient);
+  color: var(--header-text);
   border: 1px solid var(--border-color);
   border-radius: 12px;
   padding: 16px;
+}
+.stat-item .stat-number,
+.stat-item .stat-label {
+  color: var(--header-text);
+  opacity: 1;
 }
 .stat-number {
   font-variant-numeric: tabular-nums;
