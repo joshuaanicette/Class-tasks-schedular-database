@@ -168,6 +168,7 @@ test('all palette cards update theme colors, selection, and storage through real
     const card = menu.querySelector(`[data-v9-palette="${palette.id}"]`);
     card.querySelector('strong').click();
     assert.equal(document.body.dataset.palette, palette.id);
+    assert.equal(document.documentElement.style.getPropertyValue('--header-text'), '#ffffff');
     assert.equal(window.localStorage.getItem('selectedTheme'), palette.id);
     assert.equal(document.documentElement.style.colorScheme, palette.mode.toLowerCase());
     assert.equal(menu.querySelectorAll('[aria-pressed="true"]').length, 1);
@@ -194,7 +195,7 @@ test('all palette cards update theme colors, selection, and storage through real
   assert.equal(document.documentElement.style.getPropertyValue('--card-bg'), '#ffffff');
   assert.equal(document.documentElement.style.getPropertyValue('--header-text'), '#ffffff');
   window.changeTheme('arctic-theme');
-  assert.equal(document.documentElement.style.getPropertyValue('--header-text'), '#000000');
+  assert.equal(document.documentElement.style.getPropertyValue('--header-text'), '#ffffff');
 });
 
 test('saved dark palette restores, and blocked storage does not prevent changing colors', (t) => {

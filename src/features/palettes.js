@@ -447,15 +447,6 @@
 
   const { escapeHtml } = window.SchedulerUtils;
 
-  function headerTextColor(background) {
-    const channels = background.match(/[a-f\d]{2}/gi).map((channel) => {
-      const value = parseInt(channel, 16) / 255;
-      return value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4;
-    });
-    const luminance = channels[0] * 0.2126 + channels[1] * 0.7152 + channels[2] * 0.0722;
-    return luminance > 0.179 ? '#000000' : '#ffffff';
-  }
-
   function injectStyles() {
     if (document.getElementById('v9PaletteStyles')) return;
     const style = document.createElement('style');
@@ -580,10 +571,8 @@
       document.documentElement.style.setProperty(property, p.vars[key]);
       document.body.style.setProperty(property, p.vars[key]);
     }
-    document.documentElement.style.setProperty(
-      '--header-text',
-      ['default', 'ocean-theme'].includes(p.id) ? '#ffffff' : headerTextColor(p.vars.accent),
-    );
+    // Keep the reference header's title, subtitle, and controls white in every palette.
+    document.documentElement.style.setProperty('--header-text', '#ffffff');
     document.documentElement.style.colorScheme = p.mode.toLowerCase();
     document.body.dataset.palette = p.id;
     try {
