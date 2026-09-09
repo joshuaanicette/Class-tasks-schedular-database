@@ -1,21 +1,4 @@
 {
-  "buildCommand": null,
-  "outputDirectory": ".",
-  "rewrites": [
-    {
-      "source": "/((?!manifest\\.json).*)",
-      "destination": "/index.html"
-    }
-  ],
-  "headers": [
-    {
-      "source": "/manifest.json",
-      "headers": [
-        {
-          "key": "Content-Type",
-          "value": "application/manifest+json"
-        }
-      ]
-    }
-  ]
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist"
 }
