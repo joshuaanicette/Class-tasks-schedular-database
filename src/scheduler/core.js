@@ -4,6 +4,7 @@ class TaskSchedulerPro {
     this.tasks = this.loadTasks();
     this.archives = this.loadArchives();
     this.currentFilter = 'all';
+    this.assignmentCourseId = null;
     this.notificationPermission = false;
     this.searchTerm = '';
     this.currentMonth = new Date();
@@ -111,6 +112,9 @@ class TaskSchedulerPro {
     });
 
     // Filters
+    document
+      .getElementById('assignmentGrouping')
+      .addEventListener('change', () => this.renderTasks());
     document.querySelectorAll('.filter-btn').forEach((btn) => {
       btn.addEventListener('click', (e) => {
         this.setActiveFilter(e.target);

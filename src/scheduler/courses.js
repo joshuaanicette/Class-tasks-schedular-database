@@ -163,6 +163,7 @@ Object.assign(TaskSchedulerPro.prototype, {
   },
 
   renderCourses() {
+    this.renderClassHubs();
     const coursesGrid = document.getElementById('coursesGrid');
     let filteredCourses = this.courses;
 

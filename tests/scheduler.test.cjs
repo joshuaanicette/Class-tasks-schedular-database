@@ -248,3 +248,119 @@ test('palette menu supports close, Escape, outside click, focus return, and mobi
     assert.equal(document.activeElement, button);
   }
 });
+
+test('editing a past completed assignment submits without changing its deadline or completion', (t) => {
+  const original = {
+    ...task,
+    dueDate: '2020-01-01T17:15:32.456Z',
+    completed: true,
+    completedAt: '2020-01-02T12:00:00Z',
+  };
+  const { app, window } = boot(t, { ...saved, taskSchedulerTasks: JSON.stringify([original]) });
+  const { document } = window;
+  window.HTMLElement.prototype.scrollIntoView = () => {};
+  app.editTask(task.id);
+  assert.equal(document.getElementById('dueDate').hasAttribute('min'), false);
+  assert.equal(document.getElementById('taskForm').checkValidity(), true);
+  document.getElementById('assignmentGrade').value = '98';
+  document.querySelector('#taskForm button[type="submit"]').click();
+  const storedTask = JSON.parse(window.localStorage.getItem('taskSchedulerTasks'))[0];
+  assert.equal(storedTask.dueDate, original.dueDate);
+  assert.equal(storedTask.completed, true);
+  assert.equal(storedTask.completedAt, original.completedAt);
+  assert.equal(storedTask.grade, '98');
+  assert.ok(document.getElementById('dueDate').min);
+  assert.equal(app.editingTaskId, null);
+});
+
+test('editing an overdue pending assignment accepts an explicitly changed past date', (t) => {
+  const { app, window } = boot(t, saved);
+  window.HTMLElement.prototype.scrollIntoView = () => {};
+  app.editTask(task.id);
+  window.document.getElementById('dueDate').value = '2020-02-02T09:30';
+  window.document.querySelector('#taskForm button[type="submit"]').click();
+  assert.equal(app.tasks[0].dueDate.getTime(), new Date('2020-02-02T09:30').getTime());
+  assert.equal(app.tasks[0].completed, false);
+});
+
+test('class hubs combine with grouping, status filters and search without changing saved data', (t) => {
+  const otherCourse = { ...course, id: 10, name: 'Software Design', code: 'SE 211' };
+  const tasks = [
+    { ...task, id: 2, title: 'Circuit homework', priority: 'low' },
+    { ...task, id: 3, title: 'Circuit lab', type: 'lab', priority: 'high' },
+    { ...task, id: 4, title: 'Finished circuit', completed: true },
+    {
+      ...task,
+      id: 5,
+      title: 'Software project',
+      courseId: 10,
+      courseName: otherCourse.name,
+      type: 'project',
+    },
+  ];
+  const stored = {
+    taskSchedulerCourses: JSON.stringify([course, otherCourse]),
+    taskSchedulerTasks: JSON.stringify(tasks),
+  };
+  const { app, window } = boot(t, stored);
+  const { document } = window;
+  const list = () => document.getElementById('taskList');
+  const group = (value) => {
+    document.getElementById('assignmentGrouping').value = value;
+    document.getElementById('assignmentGrouping').dispatchEvent(new window.Event('change'));
+  };
+  assert.equal(document.querySelectorAll('.class-hub').length, 3);
+  document.querySelector('.class-hub[data-course-id="1"]').click();
+  assert.match(
+    document.querySelector('.class-hub[aria-pressed="true"]').textContent,
+    /2 pending.*1 completed/,
+  );
+  assert.equal(list().querySelectorAll('.task-item').length, 3);
+  assert.doesNotMatch(list().textContent, /Software project/);
+  group('priority');
+  assert.deepEqual(
+    [...list().querySelectorAll('.assignment-group-title')].map((el) => el.textContent.trim()),
+    ['High priority 1', 'Low priority 1', 'Completed 1'],
+  );
+  group('type');
+  assert.match(list().textContent, /Homework/);
+  assert.match(list().textContent, /Lab/);
+  document.querySelector('[data-filter="completed"]').click();
+  assert.equal(list().querySelectorAll('.task-item').length, 1);
+  document.querySelector('[data-filter="all"]').click();
+  const search = document.getElementById('globalSearch');
+  search.value = 'lab';
+  search.dispatchEvent(new window.Event('input'));
+  assert.equal(list().querySelectorAll('.task-item').length, 1);
+  assert.match(list().textContent, /Circuit lab/);
+  document.getElementById('clearSearch').click();
+  document.querySelector('.class-hub[data-course-id="all"]').click();
+  group('none');
+  assert.equal(list().querySelectorAll('.task-item').length, 4);
+  assert.equal(list().querySelectorAll('.assignment-group').length, 0);
+  assert.equal(window.localStorage.getItem('taskSchedulerTasks'), stored.taskSchedulerTasks);
+  assert.equal(window.localStorage.getItem('taskSchedulerCourses'), stored.taskSchedulerCourses);
+  app.assignmentCourseId = 10;
+  app.deleteCourse(10);
+  assert.equal(app.assignmentCourseId, null);
+  assert.match(document.getElementById('assignmentScope').textContent, /All classes/);
+});
+
+test('date groups use local calendar days and keep completed work separate', (t) => {
+  const today = new Date();
+  today.setHours(23, 0, 0, 0);
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const tasks = [
+    { ...task, id: 2, dueDate: today.toISOString() },
+    { ...task, id: 3, dueDate: tomorrow.toISOString() },
+    { ...task, id: 4, completed: true },
+  ];
+  const { window } = boot(t, { ...saved, taskSchedulerTasks: JSON.stringify(tasks) });
+  assert.deepEqual(
+    [...window.document.querySelectorAll('.assignment-group-title')].map((el) =>
+      el.textContent.trim(),
+    ),
+    ['Today 1', 'Tomorrow 1', 'Completed 1'],
+  );
+});

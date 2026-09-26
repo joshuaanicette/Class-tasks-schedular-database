@@ -354,3 +354,86 @@ button:disabled {
     scroll-behavior: auto !important;
   }
 }
+
+/* Class hubs and assignment groups follow the selected palette. */
+.class-hubs-section {
+  margin: 24px 0;
+}
+.class-hubs-section > p,
+#assignmentScope {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  margin: 8px 0 14px;
+}
+.class-hubs {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 210px), 1fr));
+  gap: 12px;
+}
+.class-hub {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px;
+  border: 2px solid var(--border-color);
+  border-radius: 14px;
+  background: var(--card-bg);
+  color: var(--text-primary);
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+.class-hub:hover {
+  background: var(--hover-bg);
+}
+.class-hub[aria-pressed='true'] {
+  border-color: var(--accent);
+  box-shadow: inset 0 3px var(--accent);
+}
+.class-hub-code,
+.class-hub > span:last-child {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+.assignment-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+.assignment-toolbar > div {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 100%;
+}
+.assignment-toolbar label {
+  white-space: nowrap;
+  margin: 0;
+}
+.assignment-toolbar select {
+  min-width: 0;
+}
+.assignment-group {
+  margin-bottom: 24px;
+}
+.assignment-group-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+  margin-bottom: 12px;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-primary);
+  font-size: 1rem;
+}
+.assignment-group-title span {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+.assignment-group .task-item + .task-item {
+  margin-top: 12px;
+}

@@ -441,6 +441,26 @@
                 <div class="stat-label">Overdue</div>
               </div>
             </div>
+            <section class="class-hubs-section" aria-labelledby="classHubsTitle">
+              <h3 id="classHubsTitle">Class hubs</h3>
+              <p>
+                Choose a class to focus on its assignments. Counts include all assignments in that
+                class.
+              </p>
+              <div class="class-hubs" id="classHubs"></div>
+            </section>
+            <div class="assignment-toolbar">
+              <p id="assignmentScope" role="status"></p>
+              <div>
+                <label for="assignmentGrouping">Group by</label>
+                <select id="assignmentGrouping">
+                  <option value="date">Due date</option>
+                  <option value="priority">Priority</option>
+                  <option value="type">Assignment type</option>
+                  <option value="none">Original list</option>
+                </select>
+              </div>
+            </div>
             <div class="task-list" id="taskList"></div>
           </div>
         </div>
