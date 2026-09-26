@@ -311,8 +311,9 @@
 
       <div id="assignments" class="tab-content">
         <div class="main-content">
-          <div class="form-section">
-            <h2>Add New Assignment</h2>
+          <details class="form-section assignment-editor" id="assignmentEditor">
+            <summary id="assignmentEditorToggle">＋ Add Assignment</summary>
+            <h2 id="assignmentFormTitle">Add New Assignment</h2>
             <form id="taskForm">
               <div class="form-row">
                 <div class="form-group">
@@ -409,19 +410,53 @@
                   placeholder="https://example.com/assignment.pdf"
                 ></textarea>
               </div>
-              <button type="submit" class="add-btn">Add Assignment</button>
+              <div class="form-group">
+                <label for="assignmentStatus">Work status</label>
+                <select id="assignmentStatus">
+                  <option value="pending">Pending</option>
+                  <option value="completed">Completed</option>
+                  <option value="submitted">Submitted</option>
+                </select>
+                <small
+                  >Submission and grading are tracked separately. Leave the grade blank until it
+                  arrives.</small
+                >
+              </div>
+              <div class="assignment-form-actions">
+                <button type="submit" class="add-btn">Add Assignment</button>
+                <button type="button" id="cancelAssignmentEdit">Cancel</button>
+              </div>
             </form>
-          </div>
+          </details>
           <div class="tasks-section">
             <div class="tasks-header">
               <h2>Your Assignments</h2>
+              <button type="button" id="newAssignmentButton">＋ Add Assignment</button>
               <div class="filter-controls">
                 <button class="filter-btn active" data-filter="all">All</button>
                 <button class="filter-btn" data-filter="pending">Pending</button>
                 <button class="filter-btn" data-filter="completed">Completed</button>
+                <button class="filter-btn" data-filter="awaiting">Awaiting grade</button>
+                <button class="filter-btn" data-filter="graded">Graded</button>
                 <button class="filter-btn" data-filter="high">High Priority</button>
                 <button class="filter-btn" data-filter="overdue">Overdue</button>
               </div>
+            </div>
+            <div class="assignment-focus" role="group" aria-label="Assignment time range">
+              <button type="button" data-assignment-view="all" aria-pressed="true">
+                All dates
+              </button>
+              <button type="button" data-assignment-view="week" aria-pressed="false">
+                Today &amp; This Week
+              </button>
+            </div>
+            <p id="assignmentViewHelp">Browse all your assignments.</p>
+            <div id="assignmentUndo" class="assignment-undo" hidden>
+              <span id="assignmentUndoMessage" role="status"></span>
+              <button type="button" id="undoAssignmentAction">Undo</button>
+              <button type="button" id="dismissAssignmentUndo" aria-label="Dismiss undo">
+                Dismiss
+              </button>
             </div>
             <div class="stats" id="stats">
               <div class="stat-item">
@@ -460,6 +495,32 @@
                   <option value="none">Original list</option>
                 </select>
               </div>
+            </div>
+            <div class="assignment-bulk" aria-label="Bulk assignment actions">
+              <label><input type="checkbox" id="selectVisibleAssignments" /> Select visible</label>
+              <span id="assignmentSelectionCount" role="status">0 selected</span>
+              <label for="assignmentBulkAction">Action</label>
+              <select id="assignmentBulkAction">
+                <option value="completed">Mark completed</option>
+                <option value="submitted">Mark submitted</option>
+                <option value="pending">Mark pending</option>
+                <option value="priority">Set priority</option>
+                <option value="dueDate">Set due date</option>
+              </select>
+              <label id="bulkPriorityField" hidden
+                >Priority
+                <select id="bulkPriority">
+                  <option value="high">High</option>
+                  <option value="medium">Medium</option>
+                  <option value="low">Low</option>
+                </select>
+              </label>
+              <label id="bulkDueDateField" hidden
+                >Due date &amp; time
+                <input type="datetime-local" id="bulkDueDate" />
+              </label>
+              <button type="button" id="applyAssignmentBulk" disabled>Apply</button>
+              <button type="button" id="clearAssignmentSelection" disabled>Clear selection</button>
             </div>
             <div class="task-list" id="taskList"></div>
           </div>
@@ -1006,6 +1067,7 @@
     <script src="./src/scheduler/core.js"></script>
     <script src="./src/scheduler/courses.js"></script>
     <script src="./src/scheduler/tasks.js"></script>
+    <script src="./src/scheduler/assignment-workspace.js"></script>
     <script src="./src/scheduler/grades.js"></script>
     <script src="./src/scheduler/syllabus.js"></script>
     <script src="./src/scheduler/calendar.js"></script>

@@ -20,6 +20,7 @@ class TaskSchedulerPro {
   }
 
   init() {
+    this.setupAssignmentWorkspace();
     this.setupEventListeners();
     this.renderCourses();
     this.renderTasks();
@@ -119,6 +120,10 @@ class TaskSchedulerPro {
       btn.addEventListener('click', (e) => {
         this.setActiveFilter(e.target);
         this.currentFilter = e.target.dataset.filter;
+        if (['completed', 'awaiting', 'graded'].includes(this.currentFilter)) {
+          this.assignmentView = 'all';
+          this.updateAssignmentViewControls();
+        }
         this.renderTasks();
       });
     });

@@ -437,3 +437,149 @@ button:disabled {
 .assignment-group .task-item + .task-item {
   margin-top: 12px;
 }
+
+/* Assignments lead with the work list; the editor opens only when needed. */
+#assignments > .main-content {
+  display: flex;
+  flex-direction: column;
+}
+#assignments .tasks-section {
+  order: 1;
+}
+#assignments .assignment-editor {
+  order: 0;
+  padding: 16px 22px;
+}
+#assignments .assignment-editor:not([open]) {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.assignment-editor > summary {
+  cursor: pointer;
+  color: var(--text-primary);
+  font-weight: 700;
+  padding: 10px 0;
+}
+.assignment-editor[open] > summary {
+  margin-bottom: 16px;
+}
+.assignment-editor h2 {
+  margin-bottom: 18px;
+}
+.assignment-form-actions,
+.assignment-focus,
+.assignment-card-tools,
+.assignment-undo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+#assignments [hidden] {
+  display: none !important;
+}
+#assignments .tasks-header {
+  flex-wrap: wrap;
+}
+#assignments .filter-controls {
+  flex-wrap: wrap;
+}
+#assignments button:not(.filter-btn):not(.task-btn):not(.add-btn):not(.class-hub) {
+  padding: 10px 14px;
+  border: 1px solid var(--border-color);
+  border-radius: 9px;
+  background: var(--card-bg);
+  color: var(--text-primary);
+  cursor: pointer;
+  font: inherit;
+}
+#assignments button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed !important;
+}
+#assignments .assignment-focus button[aria-pressed='true'] {
+  border-color: var(--accent);
+  box-shadow: inset 0 -3px var(--accent);
+}
+#assignmentViewHelp {
+  margin: 12px 0 18px;
+  color: var(--text-secondary);
+}
+.assignment-undo {
+  background: var(--hover-bg);
+  border: 1px solid var(--accent);
+  border-radius: 12px;
+  padding: 12px;
+  margin: 12px 0;
+}
+.assignment-bulk {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  margin: 16px 0;
+  background: var(--hover-bg);
+  border-radius: 12px;
+}
+.assignment-bulk label {
+  margin: 0;
+}
+.assignment-bulk > select,
+.assignment-bulk input[type='datetime-local'] {
+  width: auto;
+  max-width: 100%;
+}
+#assignments input[type='checkbox'] {
+  width: 18px;
+  height: 18px;
+  margin-right: 5px;
+  vertical-align: middle;
+  accent-color: var(--accent);
+}
+.assignment-card-tools {
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.assignment-card-tools label {
+  margin: 0;
+}
+.assignment-status {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+.assignment-quick-edit {
+  margin: 10px 0 16px;
+}
+.assignment-quick-edit > summary {
+  cursor: pointer;
+  color: var(--text-primary);
+}
+.assignment-quick-edit form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 160px), 1fr));
+  gap: 12px;
+  align-items: end;
+  margin-top: 12px;
+}
+.assignment-quick-edit label {
+  margin: 0;
+}
+.assignment-quick-edit select,
+.assignment-quick-edit input {
+  margin-top: 6px;
+}
+#assignments .task-item.completed {
+  opacity: 1;
+}
+@media (max-width: 700px) {
+  .assignment-bulk > select,
+  .assignment-bulk > label:not(:first-child) {
+    width: 100%;
+  }
+  .assignment-form-actions .add-btn {
+    width: 100%;
+  }
+}

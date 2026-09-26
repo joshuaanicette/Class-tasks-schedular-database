@@ -119,6 +119,10 @@ Object.assign(TaskSchedulerPro.prototype, {
       createdAt: new Date(),
     };
 
+    Object.assign(
+      task,
+      this.assignmentStatusPatch(task, document.getElementById('assignmentStatus').value),
+    );
     this.tasks.push(task);
     this.saveTasks();
     this.renderTasks();
@@ -155,6 +159,8 @@ Object.assign(TaskSchedulerPro.prototype, {
     const task = this.tasks.find((t) => t.id === taskId);
     if (!task) return;
 
+    this.openAssignmentEditor(true);
+    document.getElementById('assignmentStatus').value = this.assignmentWorkStatus(task);
     // Populate form fields
     document.getElementById('taskTitle').value = task.title;
     document.getElementById('courseSelect').value = task.courseId;
@@ -162,7 +168,7 @@ Object.assign(TaskSchedulerPro.prototype, {
     document.getElementById('description').value = task.description || '';
     document.getElementById('priority').value = task.priority;
     document.getElementById('estimatedTime').value = task.estimatedTime || '';
-    document.getElementById('assignmentGrade').value = task.grade || '';
+    document.getElementById('assignmentGrade').value = task.grade ?? '';
     document.getElementById('maxPoints').value = task.maxPoints || 100;
 
     // Set due date
@@ -261,6 +267,10 @@ Object.assign(TaskSchedulerPro.prototype, {
         maxPoints,
         tags: [...this.tags],
         attachments,
+        ...this.assignmentStatusPatch(
+          this.tasks[taskIndex],
+          document.getElementById('assignmentStatus').value,
+        ),
       };
 
       this.saveTasks();
@@ -303,31 +313,16 @@ Object.assign(TaskSchedulerPro.prototype, {
     const task = this.tasks.find((t) => t.id === id);
     if (!task) return;
 
-    task.completed = !task.completed;
-    if (task.completed) {
-      task.completedAt = new Date();
-    }
-    this.saveTasks();
-    this.renderTasks();
-    this.renderCourses();
-    this.renderCalendar();
-    this.renderTodayAssignments();
-    this.updateStats();
-    this.renderTimeStatistics();
-    this.showNotification(task.completed ? 'Completed!' : 'Marked pending', 'success');
+    this.applyAssignmentChanges(
+      [{ id, patch: this.assignmentStatusPatch(task, task.completed ? 'pending' : 'completed') }],
+      task.completed ? 'Marked pending' : 'Assignment completed',
+    );
   },
 
   deleteTask(id) {
-    if (!confirm('Delete this assignment?')) return;
-
-    this.tasks = this.tasks.filter((t) => t.id !== id);
-    this.saveTasks();
-    this.renderTasks();
-    this.renderCourses();
-    this.renderCalendar();
-    this.renderTodayAssignments();
-    this.updateStats();
-    this.showNotification('Assignment deleted', 'success');
+    const task = this.tasks.find((item) => item.id === id);
+    if (!task || !confirm('Delete this assignment? You can undo this action.')) return;
+    this.applyAssignmentChanges([{ id, remove: true }], 'Assignment deleted');
   },
 
   renderTasks() {
@@ -350,6 +345,17 @@ Object.assign(TaskSchedulerPro.prototype, {
       );
     }
 
+    if (this.assignmentView === 'week') {
+      filteredTasks = filteredTasks.filter(
+        (task) => !task.completed && this.assignmentWeekBucket(task) !== null,
+      );
+    }
+    this.visibleAssignmentIds = new Set(filteredTasks.map((task) => task.id));
+    this.selectedAssignmentIds = new Set(
+      [...this.selectedAssignmentIds].filter((id) => this.visibleAssignmentIds.has(id)),
+    );
+    this.updateAssignmentSelection();
+    this.saveAssignmentView();
     const selectedCourse = this.courses.find((course) => course.id === this.assignmentCourseId);
     document.getElementById('assignmentScope').textContent =
       `${selectedCourse ? selectedCourse.name : 'All classes'} · ${filteredTasks.length} matching assignment${filteredTasks.length === 1 ? '' : 's'}`;
@@ -363,7 +369,8 @@ Object.assign(TaskSchedulerPro.prototype, {
       return new Date(a.dueDate) - new Date(b.dueDate);
     });
 
-    const grouping = document.getElementById('assignmentGrouping').value;
+    const grouping =
+      this.assignmentView === 'week' ? 'week' : document.getElementById('assignmentGrouping').value;
     if (grouping === 'none') {
       taskList.innerHTML = filteredTasks.map((task) => this.createTaskHTML(task)).join('');
       return;
@@ -376,6 +383,10 @@ Object.assign(TaskSchedulerPro.prototype, {
         key = 'completed';
         label = 'Completed';
         order = Infinity;
+      } else if (grouping === 'week') {
+        key = this.assignmentWeekBucket(task);
+        label = { overdue: 'Overdue', today: 'Today', upcoming: 'Later this week' }[key];
+        order = { overdue: 0, today: 1, upcoming: 2 }[key];
       } else if (grouping === 'priority') {
         key = task.priority || 'none';
         label =
@@ -498,7 +509,8 @@ Object.assign(TaskSchedulerPro.prototype, {
         : '';
 
     return `
-            <div class="task-item ${task.priority}-priority ${task.completed ? 'completed' : ''}">
+            <div class="task-item ${task.priority}-priority ${task.completed ? 'completed' : ''}" data-assignment-id="${task.id}">
+                ${this.assignmentQuickControls(task)}
                 <div class="task-header">
                     <h3 class="task-title">${task.title}</h3>
                     <span class="task-course">${task.courseName}</span>
@@ -531,6 +543,10 @@ Object.assign(TaskSchedulerPro.prototype, {
           return !task.completed;
         case 'completed':
           return task.completed;
+        case 'awaiting':
+          return task.submitted === true && !this.assignmentHasGrade(task);
+        case 'graded':
+          return this.assignmentHasGrade(task);
         case 'high':
           return task.priority === 'high' && !task.completed;
         case 'overdue':
@@ -584,6 +600,9 @@ Object.assign(TaskSchedulerPro.prototype, {
     this.tags = [];
     this.editingTaskId = null;
     this.editingDueDateValue = null;
+    document.getElementById('assignmentEditor').open = false;
+    document.getElementById('assignmentEditorToggle').textContent = '＋ Add Assignment';
+    document.getElementById('assignmentFormTitle').textContent = 'Add New Assignment';
     this.setMinDateTime();
 
     // Clear tags display
