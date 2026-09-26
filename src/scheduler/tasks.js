@@ -328,6 +328,7 @@ Object.assign(TaskSchedulerPro.prototype, {
   renderTasks() {
     const taskList = document.getElementById('taskList');
     this.renderClassHubs();
+    document.querySelector('#assignments .assignment-controls').hidden = this.tasks.length === 0;
     let filteredTasks = this.getFilteredTasks();
     if (this.assignmentCourseId != null) {
       filteredTasks = filteredTasks.filter((task) => task.courseId === this.assignmentCourseId);
@@ -360,7 +361,7 @@ Object.assign(TaskSchedulerPro.prototype, {
     document.getElementById('assignmentScope').textContent =
       `${selectedCourse ? selectedCourse.name : 'All classes'} · ${filteredTasks.length} matching assignment${filteredTasks.length === 1 ? '' : 's'}`;
     if (filteredTasks.length === 0) {
-      taskList.innerHTML = '<div class="empty-state"><h3>No assignments found</h3></div>';
+      this.renderAssignmentEmptyState(taskList);
       return;
     }
 
@@ -429,9 +430,34 @@ Object.assign(TaskSchedulerPro.prototype, {
       .join('');
   },
 
+  renderAssignmentEmptyState(container) {
+    let title,
+      description,
+      action = '';
+    const scopedTasks =
+      this.assignmentCourseId == null
+        ? this.tasks
+        : this.tasks.filter((task) => task.courseId === this.assignmentCourseId);
+    if (this.courses.length === 0 && this.tasks.length === 0) {
+      title = 'Start with your first class';
+      description = 'Add your first class to start organizing assignments.';
+      action = '<button type="button" data-empty-action="add-class">＋ Add Class</button>';
+    } else if (scopedTasks.length === 0) {
+      title = 'No assignments yet';
+      description = 'Use Add Assignment above to plan your first deadline for this class.';
+    } else {
+      title = 'No assignments match this view';
+      description = 'Try a different search, status, or date range.';
+      action = '<button type="button" data-empty-action="reset-filters">Clear filters</button>';
+    }
+    container.innerHTML = `<div class="empty-state assignment-empty"><h3>${title}</h3><p>${description}</p>${action}</div>`;
+  },
+
   renderClassHubs() {
     const container = document.getElementById('classHubs');
     if (!container) return;
+    container.closest('.class-hubs-section').hidden =
+      this.courses.length === 0 && this.tasks.length === 0;
     if (!this.courses.some((course) => course.id === this.assignmentCourseId)) {
       this.assignmentCourseId = null;
     }
@@ -601,7 +627,9 @@ Object.assign(TaskSchedulerPro.prototype, {
     this.editingTaskId = null;
     this.editingDueDateValue = null;
     document.getElementById('assignmentEditor').open = false;
-    document.getElementById('assignmentEditorToggle').textContent = '＋ Add Assignment';
+    document.getElementById('assignmentEditor').hidden = true;
+    document.getElementById('newAssignmentButton').setAttribute('aria-expanded', 'false');
+    document.getElementById('assignmentEditorToggle').textContent = 'Assignment details';
     document.getElementById('assignmentFormTitle').textContent = 'Add New Assignment';
     this.setMinDateTime();
 

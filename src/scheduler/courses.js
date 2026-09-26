@@ -136,6 +136,7 @@ Object.assign(TaskSchedulerPro.prototype, {
     this.courses.push(course);
     this.saveCourses();
     this.renderCourses();
+    this.renderTasks();
     this.updateCourseSelect();
     this.updateGradeCalcCourseSelect();
     this.updateWhatIfCourseSelect();

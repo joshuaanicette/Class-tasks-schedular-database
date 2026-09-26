@@ -37,6 +37,13 @@ Object.assign(TaskSchedulerPro.prototype, {
     document
       .getElementById('newAssignmentButton')
       .addEventListener('click', () => this.openAssignmentEditor());
+    document.getElementById('assignmentEditor').addEventListener('toggle', () => {
+      const editor = document.getElementById('assignmentEditor');
+      editor.hidden = !editor.open;
+      document
+        .getElementById('newAssignmentButton')
+        .setAttribute('aria-expanded', String(editor.open));
+    });
     document.getElementById('cancelAssignmentEdit').addEventListener('click', () => {
       this.clearTaskForm();
       document.getElementById('newAssignmentButton').focus();
@@ -84,6 +91,25 @@ Object.assign(TaskSchedulerPro.prototype, {
       this.renderAssignmentUndo();
     });
     const list = document.getElementById('taskList');
+    list.addEventListener('click', (event) => {
+      const action = event.target.closest('[data-empty-action]')?.dataset.emptyAction;
+      if (action === 'add-class') {
+        const tab = document.querySelector('.tab[onclick*="courses"]');
+        openTab({ currentTarget: tab }, 'courses');
+        this.assignmentTabActive = false;
+        this.saveAssignmentView();
+        document.getElementById('courseName').focus();
+        document
+          .getElementById('courseForm')
+          .scrollIntoView?.({ behavior: 'smooth', block: 'start' });
+      } else if (action === 'reset-filters') {
+        this.currentFilter = 'all';
+        this.assignmentView = 'all';
+        this.setActiveFilter(document.querySelector('#assignments [data-filter="all"]'));
+        this.updateAssignmentViewControls();
+        document.getElementById('clearSearch').click();
+      }
+    });
     list.addEventListener('change', (event) => {
       const input = event.target;
       const card = input.closest('[data-assignment-id]');
@@ -118,13 +144,15 @@ Object.assign(TaskSchedulerPro.prototype, {
   openAssignmentEditor(editing = false) {
     editing = editing || Boolean(this.editingTaskId);
     const editor = document.getElementById('assignmentEditor');
+    editor.hidden = false;
     editor.open = true;
+    document.getElementById('newAssignmentButton').setAttribute('aria-expanded', 'true');
     document.getElementById('assignmentFormTitle').textContent = editing
       ? 'Edit Assignment'
       : 'Add New Assignment';
     document.getElementById('assignmentEditorToggle').textContent = editing
       ? 'Edit Assignment'
-      : '＋ Add Assignment';
+      : 'Assignment details';
     if (!editing && !this.editingTaskId && this.assignmentCourseId != null) {
       document.getElementById('courseSelect').value = this.assignmentCourseId;
       this.updateCategorySelect(this.assignmentCourseId);
@@ -216,6 +244,9 @@ Object.assign(TaskSchedulerPro.prototype, {
 
   updateAssignmentSelection() {
     const size = this.selectedAssignmentIds.size;
+    document.getElementById('assignmentBulkControls').hidden = size === 0;
+    document.getElementById('assignmentSelectVisible').hidden =
+      this.visibleAssignmentIds.size === 0;
     document.getElementById('assignmentSelectionCount').textContent = `${size} selected`;
     document.getElementById('applyAssignmentBulk').disabled = size === 0;
     document.getElementById('clearAssignmentSelection').disabled = size === 0;

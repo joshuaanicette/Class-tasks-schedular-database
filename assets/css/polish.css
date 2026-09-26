@@ -357,7 +357,7 @@ button:disabled {
 
 /* Class hubs and assignment groups follow the selected palette. */
 .class-hubs-section {
-  margin: 24px 0;
+  margin: 16px 0;
 }
 .class-hubs-section > p,
 #assignmentScope {
@@ -366,15 +366,18 @@ button:disabled {
   margin: 8px 0 14px;
 }
 .class-hubs {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 210px), 1fr));
-  gap: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 .class-hub {
+  flex: 0 1 260px;
+  max-width: 100%;
+  min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 16px;
+  gap: 6px;
+  padding: 12px 14px;
   border: 2px solid var(--border-color);
   border-radius: 14px;
   background: var(--card-bg);
@@ -402,19 +405,21 @@ button:disabled {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 18px;
+  margin: 12px 0;
 }
-.assignment-toolbar > div {
+.assignment-controls-row,
+.assignment-controls-row > div {
   display: flex;
   align-items: center;
   gap: 10px;
   max-width: 100%;
 }
-.assignment-toolbar label {
+.assignment-toolbar label,
+.assignment-controls-row label {
   white-space: nowrap;
   margin: 0;
 }
-.assignment-toolbar select {
+.assignment-controls-row select {
   min-width: 0;
 }
 .assignment-group {
@@ -444,17 +449,11 @@ button:disabled {
   flex-direction: column;
 }
 #assignments .tasks-section {
-  order: 1;
+  padding: 22px;
 }
 #assignments .assignment-editor {
-  order: 0;
   padding: 16px 22px;
-}
-#assignments .assignment-editor:not([open]) {
-  padding: 0;
-  border: 0;
-  background: transparent;
-  box-shadow: none;
+  margin-bottom: 18px;
 }
 .assignment-editor > summary {
   cursor: pointer;
@@ -581,5 +580,80 @@ button:disabled {
   }
   .assignment-form-actions .add-btn {
     width: 100%;
+  }
+}
+
+/* Compact overview keeps the assignment list close to the controls. */
+#assignments .tasks-header {
+  margin-bottom: 16px;
+}
+#assignments .stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  max-width: 680px;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+#assignments .stat-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 9px;
+}
+#assignments .stat-number {
+  font-size: 1.25rem;
+  margin: 0;
+}
+#assignments .stat-label {
+  font-size: 0.85rem;
+}
+.assignment-controls {
+  padding: 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+}
+.assignment-controls-row {
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+.assignment-controls-row select {
+  width: auto;
+  max-width: 100%;
+}
+#assignments #assignmentViewHelp {
+  font-size: 0.85rem;
+  margin: 8px 0 12px;
+}
+#assignments #assignmentScope {
+  margin: 0;
+}
+#assignments .assignment-empty {
+  padding: 28px 16px;
+}
+.assignment-empty p {
+  margin: 10px 0 16px;
+  color: var(--text-secondary);
+}
+@media (max-width: 700px) {
+  #assignments .tasks-section {
+    padding: 16px;
+  }
+  #assignments .stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .assignment-controls-row > div {
+    flex-wrap: wrap;
+  }
+  .assignment-controls .filter-controls {
+    gap: 6px;
+  }
+  .assignment-controls .filter-btn {
+    padding: 8px 10px;
+  }
+  .class-hub {
+    flex-basis: 100%;
   }
 }
