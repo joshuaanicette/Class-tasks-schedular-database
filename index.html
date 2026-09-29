@@ -8,16 +8,16 @@
       name="description"
       content="Complete academic task management with grades, syllabus, and analytics"
     />
-    <link
-      rel="manifest"
-      href='data:application/manifest+json,{"name":"Class Task Scheduler Pro","short_name":"TaskScheduler","description":"Complete academic task management","start_url":"./","display":"standalone","background_color":"%23667eea","theme_color":"%234facfe","icons":[{"src":"data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Crect width=%27100%27 height=%27100%27 rx=%2720%27 fill=%27%234facfe%27/%3E%3Ctext x=%2750%27 y=%2770%27 font-size=%2760%27 text-anchor=%27middle%27 fill=%27white%27%3E📚%3C/text%3E%3C/svg%3E","sizes":"512x512","type":"image/svg+xml"}]}'
-    />
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="./assets/icons/icon-192.png" />
     <title>Class Task Scheduler Pro</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-functions-compat.js"></script>
     <link rel="stylesheet" href="./assets/css/base.css" />
     <link rel="stylesheet" href="./assets/css/reminders.css" />
     <link rel="stylesheet" href="./assets/css/time-tracking.css" />
@@ -1075,6 +1075,7 @@
     </div>
 
     <script src="./config/firebase.js"></script>
+    <script src="./config/push.js"></script>
     <script src="./src/shared/utils.js"></script>
     <script src="./src/shared/features.js"></script>
     <script src="./src/services/firebase.js"></script>
@@ -1093,6 +1094,7 @@
     <script src="./src/services/calendar-export.js"></script>
     <script src="./src/ui/sync-status.js"></script>
     <script src="./src/features/academic-planner.js"></script>
+    <script src="./src/services/push.js"></script>
     <script src="./src/features/academic-insights.js"></script>
     <script src="./src/features/course-components.js"></script>
     <script src="./src/features/weekly-schedule.js"></script>

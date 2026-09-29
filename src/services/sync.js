@@ -124,6 +124,7 @@ class SyncManager {
     if (!firebaseAuth) return;
 
     try {
+      await window.SchedulerPush?.disable();
       await firebaseAuth.signOut();
       this.user = null;
       this.updateUI();
@@ -132,6 +133,10 @@ class SyncManager {
       }
     } catch (error) {
       console.error('Sign out error:', error);
+      taskScheduler.showNotification(
+        'Could not finish signing out. Reconnect so this device can stop receiving background reminders, then try again.',
+        'error',
+      );
     }
   }
 
