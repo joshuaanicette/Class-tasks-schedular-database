@@ -613,6 +613,7 @@
 
   function saveReminderSettings(next) {
     localStorage.setItem('reminderSettingsV2', JSON.stringify(next));
+    window.SchedulerPush?.syncPreferences();
     localStorage.setItem(
       'reminderSettings',
       JSON.stringify({
@@ -638,7 +639,7 @@
   }
 
   function reminderFor(task, now, config) {
-    if (task.completed || isSnoozed(task.id)) return null;
+    if (task.completed || task.submitted || isSnoozed(task.id)) return null;
     const dueDate = new Date(task.dueDate);
     if (Number.isNaN(dueDate.getTime())) return null;
     const diff = dueDate - now;
@@ -800,7 +801,8 @@
     sendBrowserDigest(false);
   }
 
-  function sendBrowserDigest(force) {
+  async function sendBrowserDigest(force) {
+    if (window.SchedulerPush?.active) return;
     if (!('Notification' in window) || Notification.permission !== 'granted') return;
     const config = reminderSettings();
     if (!force && !config.browserNotifications) return;
@@ -818,7 +820,14 @@
         ? `${first.task.title} — ${first.label}`
         : `${first.task.title} — ${first.label}. Plus ${reminders.length - 1} more reminder${reminders.length === 2 ? '' : 's'}.`;
     try {
-      new Notification('Class Task Scheduler', { body, tag: 'class-task-reminder-digest' });
+      if (window.SchedulerPush) {
+        await window.SchedulerPush.showLocal('Class Task Scheduler', {
+          body,
+          tag: 'class-task-reminder-digest',
+        });
+      } else {
+        new Notification('Class Task Scheduler', { body, tag: 'class-task-reminder-digest' });
+      }
       localStorage.setItem('schedulerReminderDigestKey', `${day}:${key}`);
     } catch (_) {}
   }
@@ -850,6 +859,7 @@
     } catch (_) {}
     snoozes[id] = Date.now() + DAY_MS;
     localStorage.setItem('schedulerReminderSnoozes', JSON.stringify(snoozes));
+    window.SchedulerPush?.syncPreferences();
     scheduler()?.showNotification('Reminder snoozed until tomorrow.', 'info');
     renderReminders();
   };
