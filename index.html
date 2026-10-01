@@ -8,16 +8,16 @@
       name="description"
       content="Complete academic task management with grades, syllabus, and analytics"
     />
-    <link
-      rel="manifest"
-      href='data:application/manifest+json,{"name":"Class Task Scheduler Pro","short_name":"TaskScheduler","description":"Complete academic task management","start_url":"./","display":"standalone","background_color":"%23667eea","theme_color":"%234facfe","icons":[{"src":"data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Crect width=%27100%27 height=%27100%27 rx=%2720%27 fill=%27%234facfe%27/%3E%3Ctext x=%2750%27 y=%2770%27 font-size=%2760%27 text-anchor=%27middle%27 fill=%27white%27%3E📚%3C/text%3E%3C/svg%3E","sizes":"512x512","type":"image/svg+xml"}]}'
-    />
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="./assets/icons/icon-192.png" />
     <title>Class Task Scheduler Pro</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-functions-compat.js"></script>
     <link rel="stylesheet" href="./assets/css/base.css" />
     <link rel="stylesheet" href="./assets/css/reminders.css" />
     <link rel="stylesheet" href="./assets/css/time-tracking.css" />
@@ -311,117 +311,141 @@
 
       <div id="assignments" class="tab-content">
         <div class="main-content">
-          <div class="form-section">
-            <h2>Add New Assignment</h2>
-            <form id="taskForm">
-              <div class="form-row">
-                <div class="form-group">
-                  <label for="taskTitle">Assignment Title *</label>
-                  <input
-                    type="text"
-                    id="taskTitle"
-                    required
-                    placeholder="Essay, project, exam..."
-                  />
-                </div>
-                <div class="form-group">
-                  <label for="courseSelect">Course *</label>
-                  <select id="courseSelect" required>
-                    <option value="">Select a course...</option>
-                  </select>
-                </div>
-              </div>
-              <div class="form-row">
-                <div class="form-group">
-                  <label for="assignmentType">Assignment Type *</label>
-                  <select id="assignmentType" required>
-                    <option value="">Select type...</option>
-                    <option value="assignment">Assignment</option>
-                    <option value="midterm">Midterm Exam</option>
-                    <option value="final">Final Exam</option>
-                    <option value="exam">Other Exam</option>
-                    <option value="quiz">Quiz</option>
-                    <option value="project">Project</option>
-                    <option value="homework">Homework</option>
-                    <option value="lab">Lab</option>
-                    <option value="reading">Reading</option>
-                    <option value="presentation">Presentation</option>
-                    <option value="paper">Paper/Essay</option>
-                    <option value="other">Other</option>
-                  </select>
-                </div>
-                <div class="form-group">
-                  <label for="categorySelect">Grade Category (optional)</label>
-                  <select id="categorySelect">
-                    <option value="">Auto-assign from type</option>
-                  </select>
-                </div>
-              </div>
-              <div class="form-row">
-                <div class="form-group">
-                  <label for="priority">Priority</label>
-                  <select id="priority">
-                    <option value="high">High</option>
-                    <option value="medium" selected>Medium</option>
-                    <option value="low">Low</option>
-                  </select>
-                </div>
-                <div class="form-group">
-                  <label for="dueDate">Due Date & Time *</label>
-                  <input type="datetime-local" id="dueDate" required />
-                </div>
-              </div>
-              <div class="form-row">
-                <div class="form-group">
-                  <label for="estimatedTime">Est. Time (hours)</label>
-                  <input type="number" id="estimatedTime" step="0.5" min="0" placeholder="2.5" />
-                </div>
-              </div>
-              <div class="form-row">
-                <div class="form-group">
-                  <label for="assignmentGrade">Grade (if graded)</label>
-                  <input type="text" id="assignmentGrade" placeholder="95, A-, 88%" />
-                </div>
-                <div class="form-group">
-                  <label for="maxPoints">Max Points</label>
-                  <input type="number" id="maxPoints" step="1" min="0" placeholder="100" />
-                </div>
-              </div>
-              <div class="form-group">
-                <label for="description">Description</label>
-                <textarea id="description" placeholder="Assignment details..."></textarea>
-              </div>
-              <div class="form-group">
-                <label>Tags</label>
-                <div class="tags-input-container" id="tagsContainer">
-                  <input
-                    type="text"
-                    class="tag-input"
-                    id="tagInput"
-                    placeholder="homework, reading..."
-                  />
-                </div>
-              </div>
-              <div class="form-group">
-                <label for="attachmentUrl">Attachment Links</label>
-                <textarea
-                  id="attachmentUrl"
-                  placeholder="https://example.com/assignment.pdf"
-                ></textarea>
-              </div>
-              <button type="submit" class="add-btn">Add Assignment</button>
-            </form>
-          </div>
           <div class="tasks-section">
             <div class="tasks-header">
               <h2>Your Assignments</h2>
-              <div class="filter-controls">
-                <button class="filter-btn active" data-filter="all">All</button>
-                <button class="filter-btn" data-filter="pending">Pending</button>
-                <button class="filter-btn" data-filter="completed">Completed</button>
-                <button class="filter-btn" data-filter="high">High Priority</button>
-                <button class="filter-btn" data-filter="overdue">Overdue</button>
-              </div>
+              <button
+                type="button"
+                id="newAssignmentButton"
+                aria-controls="assignmentEditor"
+                aria-expanded="false"
+              >
+                ＋ Add Assignment
+              </button>
+            </div>
+            <details class="form-section assignment-editor" id="assignmentEditor" hidden>
+              <summary id="assignmentEditorToggle">Assignment details</summary>
+              <h2 id="assignmentFormTitle">Add New Assignment</h2>
+              <form id="taskForm">
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="taskTitle">Assignment Title *</label>
+                    <input
+                      type="text"
+                      id="taskTitle"
+                      required
+                      placeholder="Essay, project, exam..."
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label for="courseSelect">Course *</label>
+                    <select id="courseSelect" required>
+                      <option value="">Select a course...</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="assignmentType">Assignment Type *</label>
+                    <select id="assignmentType" required>
+                      <option value="">Select type...</option>
+                      <option value="assignment">Assignment</option>
+                      <option value="midterm">Midterm Exam</option>
+                      <option value="final">Final Exam</option>
+                      <option value="exam">Other Exam</option>
+                      <option value="quiz">Quiz</option>
+                      <option value="project">Project</option>
+                      <option value="homework">Homework</option>
+                      <option value="lab">Lab</option>
+                      <option value="reading">Reading</option>
+                      <option value="presentation">Presentation</option>
+                      <option value="paper">Paper/Essay</option>
+                      <option value="other">Other</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label for="categorySelect">Grade Category (optional)</label>
+                    <select id="categorySelect">
+                      <option value="">Auto-assign from type</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="priority">Priority</label>
+                    <select id="priority">
+                      <option value="high">High</option>
+                      <option value="medium" selected>Medium</option>
+                      <option value="low">Low</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label for="dueDate">Due Date & Time *</label>
+                    <input type="datetime-local" id="dueDate" required />
+                  </div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="estimatedTime">Est. Time (hours)</label>
+                    <input type="number" id="estimatedTime" step="0.5" min="0" placeholder="2.5" />
+                  </div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="assignmentGrade">Grade (if graded)</label>
+                    <input type="text" id="assignmentGrade" placeholder="95, A-, 88%" />
+                  </div>
+                  <div class="form-group">
+                    <label for="maxPoints">Max Points</label>
+                    <input type="number" id="maxPoints" step="1" min="0" placeholder="100" />
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="description">Description</label>
+                  <textarea id="description" placeholder="Assignment details..."></textarea>
+                </div>
+                <div class="form-group">
+                  <label>Tags</label>
+                  <div class="tags-input-container" id="tagsContainer">
+                    <input
+                      type="text"
+                      class="tag-input"
+                      id="tagInput"
+                      placeholder="homework, reading..."
+                    />
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="attachmentUrl">Attachment Links</label>
+                  <textarea
+                    id="attachmentUrl"
+                    placeholder="https://example.com/assignment.pdf"
+                  ></textarea>
+                </div>
+                <div class="form-group">
+                  <label for="assignmentStatus">Work status</label>
+                  <select id="assignmentStatus">
+                    <option value="pending">Pending</option>
+                    <option value="completed">Completed</option>
+                    <option value="submitted">Submitted</option>
+                  </select>
+                  <small
+                    >Submission and grading are tracked separately. Leave the grade blank until it
+                    arrives.</small
+                  >
+                </div>
+                <div class="assignment-form-actions">
+                  <button type="submit" class="add-btn">Add Assignment</button>
+                  <button type="button" id="cancelAssignmentEdit">Cancel</button>
+                </div>
+              </form>
+            </details>
+            <div id="assignmentUndo" class="assignment-undo" hidden>
+              <span id="assignmentUndoMessage" role="status"></span>
+              <button type="button" id="undoAssignmentAction">Undo</button>
+              <button type="button" id="dismissAssignmentUndo" aria-label="Dismiss undo">
+                Dismiss
+              </button>
             </div>
             <div class="stats" id="stats">
               <div class="stat-item">
@@ -440,6 +464,79 @@
                 <div class="stat-number" id="overdueTasks">0</div>
                 <div class="stat-label">Overdue</div>
               </div>
+            </div>
+            <section class="class-hubs-section" aria-labelledby="classHubsTitle">
+              <h3 id="classHubsTitle">Class hubs</h3>
+              <p>Choose a class. Counts include all its assignments.</p>
+              <div class="class-hubs" id="classHubs"></div>
+            </section>
+            <section class="assignment-controls" aria-label="Filter and group assignments">
+              <div class="assignment-controls-row">
+                <div class="assignment-focus" role="group" aria-label="Assignment time range">
+                  <button type="button" data-assignment-view="all" aria-pressed="true">
+                    All dates
+                  </button>
+                  <button type="button" data-assignment-view="week" aria-pressed="false">
+                    Today &amp; This Week
+                  </button>
+                </div>
+
+                <div>
+                  <label for="assignmentGrouping">Group by</label>
+                  <select id="assignmentGrouping">
+                    <option value="date">Due date</option>
+                    <option value="priority">Priority</option>
+                    <option value="type">Assignment type</option>
+                    <option value="none">Original list</option>
+                  </select>
+                </div>
+              </div>
+              <p id="assignmentViewHelp">Browse all your assignments.</p>
+              <div class="filter-controls">
+                <button class="filter-btn active" data-filter="all">All</button>
+                <button class="filter-btn" data-filter="pending">Pending</button>
+                <button class="filter-btn" data-filter="completed">Completed</button>
+                <button class="filter-btn" data-filter="awaiting">Awaiting grade</button>
+                <button class="filter-btn" data-filter="graded">Graded</button>
+                <button class="filter-btn" data-filter="high">High Priority</button>
+                <button class="filter-btn" data-filter="overdue">Overdue</button>
+              </div>
+            </section>
+            <div class="assignment-toolbar">
+              <p id="assignmentScope" role="status"></p>
+              <label id="assignmentSelectVisible" hidden
+                ><input type="checkbox" id="selectVisibleAssignments" /> Select visible</label
+              >
+            </div>
+            <div
+              class="assignment-bulk"
+              id="assignmentBulkControls"
+              aria-label="Bulk assignment actions"
+              hidden
+            >
+              <span id="assignmentSelectionCount" role="status">0 selected</span>
+              <label for="assignmentBulkAction">Action</label>
+              <select id="assignmentBulkAction">
+                <option value="completed">Mark completed</option>
+                <option value="submitted">Mark submitted</option>
+                <option value="pending">Mark pending</option>
+                <option value="priority">Set priority</option>
+                <option value="dueDate">Set due date</option>
+              </select>
+              <label id="bulkPriorityField" hidden
+                >Priority
+                <select id="bulkPriority">
+                  <option value="high">High</option>
+                  <option value="medium">Medium</option>
+                  <option value="low">Low</option>
+                </select>
+              </label>
+              <label id="bulkDueDateField" hidden
+                >Due date &amp; time
+                <input type="datetime-local" id="bulkDueDate" />
+              </label>
+              <button type="button" id="applyAssignmentBulk" disabled>Apply</button>
+              <button type="button" id="clearAssignmentSelection" disabled>Clear selection</button>
             </div>
             <div class="task-list" id="taskList"></div>
           </div>
@@ -978,6 +1075,7 @@
     </div>
 
     <script src="./config/firebase.js"></script>
+    <script src="./config/push.js"></script>
     <script src="./src/shared/utils.js"></script>
     <script src="./src/shared/features.js"></script>
     <script src="./src/services/firebase.js"></script>
@@ -986,6 +1084,7 @@
     <script src="./src/scheduler/core.js"></script>
     <script src="./src/scheduler/courses.js"></script>
     <script src="./src/scheduler/tasks.js"></script>
+    <script src="./src/scheduler/assignment-workspace.js"></script>
     <script src="./src/scheduler/grades.js"></script>
     <script src="./src/scheduler/syllabus.js"></script>
     <script src="./src/scheduler/calendar.js"></script>
@@ -995,6 +1094,7 @@
     <script src="./src/services/calendar-export.js"></script>
     <script src="./src/ui/sync-status.js"></script>
     <script src="./src/features/academic-planner.js"></script>
+    <script src="./src/services/push.js"></script>
     <script src="./src/features/academic-insights.js"></script>
     <script src="./src/features/course-components.js"></script>
     <script src="./src/features/weekly-schedule.js"></script>

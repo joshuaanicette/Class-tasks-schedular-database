@@ -27,7 +27,19 @@ Open `http://localhost:8000`. The app has no runtime npm dependencies or framewo
 - Device-local persistence, JSON backup/import, and optional account-based cloud sync
 - Responsive layout, selectable palettes, keyboard tabs, dialog focus handling, and reduced-motion support
 
-The existing 2026–2028 academic calendar data is preserved. Review dates against your course and university calendars when planning a new term. Browser reminders run while the app is open; this is not a background push-notification service.
+The existing 2026–2028 academic calendar data is preserved. Review dates against your course and university calendars when planning a new term. In-app reminders run while the app is open. Optional background push reminders use Firebase Cloud Messaging and scheduled functions; they require the one-time [background reminder deployment](docs/background-reminders.md) before users can enable them on each device.
+
+## Assignment workspace
+
+The Assignments tab starts with a collapsed editor and a full-width assignment list. Use **Add Assignment** to open the editor; **Cancel** discards the form changes. Editing an existing assignment permits past due dates and keeps its original deadline unless the date field changes.
+
+Class hubs combine with search and status filters. Group the results by date, priority, or assignment type, or return to the original list. **Today & This Week** shows unfinished overdue work, today's remaining deadlines, and upcoming work through Sunday in local time. Selecting Completed, Awaiting grade, or Graded switches back to All dates so finished work remains discoverable.
+
+Each card has a **Quick edit** panel for priority, work status, and grade. Work status and grading are independent: Submitted work is finished for reminders and workload calculations but appears under Awaiting grade until a grade is entered. Zero is a valid grade. Existing completed assignments retain their status. The optional `submitted` and `submittedAt` fields extend existing records; the existing `completed` flag continues to drive legacy views and sync.
+
+Select visible assignments to change their priority, due date, or work status together. Changing the visible results drops hidden selections. **Undo** reverses completion, deletion, quick edits, or bulk changes during the current session (up to ten actions); it preserves unrelated edits and refuses to overwrite newer changes to the same fields. Refreshing the page or dismissing Undo clears this temporary history.
+
+The selected class, grouping, status filter, time range, and whether the Assignments tab was active are remembered in this browser. Preferences are separate from task data and are not synced across devices. Search text and bulk selections are temporary.
 
 ## Code layout
 

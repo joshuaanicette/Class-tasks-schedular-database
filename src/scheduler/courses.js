@@ -136,6 +136,7 @@ Object.assign(TaskSchedulerPro.prototype, {
     this.courses.push(course);
     this.saveCourses();
     this.renderCourses();
+    this.renderTasks();
     this.updateCourseSelect();
     this.updateGradeCalcCourseSelect();
     this.updateWhatIfCourseSelect();
@@ -163,6 +164,7 @@ Object.assign(TaskSchedulerPro.prototype, {
   },
 
   renderCourses() {
+    this.renderClassHubs();
     const coursesGrid = document.getElementById('coursesGrid');
     let filteredCourses = this.courses;
 

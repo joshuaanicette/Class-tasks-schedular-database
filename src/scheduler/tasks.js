@@ -119,6 +119,10 @@ Object.assign(TaskSchedulerPro.prototype, {
       createdAt: new Date(),
     };
 
+    Object.assign(
+      task,
+      this.assignmentStatusPatch(task, document.getElementById('assignmentStatus').value),
+    );
     this.tasks.push(task);
     this.saveTasks();
     this.renderTasks();
@@ -155,6 +159,8 @@ Object.assign(TaskSchedulerPro.prototype, {
     const task = this.tasks.find((t) => t.id === taskId);
     if (!task) return;
 
+    this.openAssignmentEditor(true);
+    document.getElementById('assignmentStatus').value = this.assignmentWorkStatus(task);
     // Populate form fields
     document.getElementById('taskTitle').value = task.title;
     document.getElementById('courseSelect').value = task.courseId;
@@ -162,7 +168,7 @@ Object.assign(TaskSchedulerPro.prototype, {
     document.getElementById('description').value = task.description || '';
     document.getElementById('priority').value = task.priority;
     document.getElementById('estimatedTime').value = task.estimatedTime || '';
-    document.getElementById('assignmentGrade').value = task.grade || '';
+    document.getElementById('assignmentGrade').value = task.grade ?? '';
     document.getElementById('maxPoints').value = task.maxPoints || 100;
 
     // Set due date
@@ -171,6 +177,8 @@ Object.assign(TaskSchedulerPro.prototype, {
       .toISOString()
       .slice(0, 16);
     document.getElementById('dueDate').value = localISOTime;
+    this.editingDueDateValue = localISOTime;
+    document.getElementById('dueDate').removeAttribute('min');
 
     // Update category select and set category
     this.updateCategorySelect(task.courseId);
@@ -187,9 +195,7 @@ Object.assign(TaskSchedulerPro.prototype, {
     }
 
     // Set attachments
-    if (task.attachments && task.attachments.length > 0) {
-      document.getElementById('attachmentUrl').value = task.attachments.join('\n');
-    }
+    document.getElementById('attachmentUrl').value = (task.attachments || []).join('\n');
 
     // Store the ID for updating
     this.editingTaskId = taskId;
@@ -243,6 +249,9 @@ Object.assign(TaskSchedulerPro.prototype, {
     // Find and update the task
     const taskIndex = this.tasks.findIndex((t) => t.id === this.editingTaskId);
     if (taskIndex !== -1) {
+      // Keep seconds, milliseconds, and timezone identity when the date was not edited.
+      const updatedDueDate =
+        dueDate === this.editingDueDateValue ? this.tasks[taskIndex].dueDate : new Date(dueDate);
       this.tasks[taskIndex] = {
         ...this.tasks[taskIndex],
         title,
@@ -250,7 +259,7 @@ Object.assign(TaskSchedulerPro.prototype, {
         courseName: course.name,
         type,
         category,
-        dueDate: new Date(dueDate),
+        dueDate: updatedDueDate,
         priority,
         description,
         estimatedTime,
@@ -258,6 +267,10 @@ Object.assign(TaskSchedulerPro.prototype, {
         maxPoints,
         tags: [...this.tags],
         attachments,
+        ...this.assignmentStatusPatch(
+          this.tasks[taskIndex],
+          document.getElementById('assignmentStatus').value,
+        ),
       };
 
       this.saveTasks();
@@ -300,36 +313,26 @@ Object.assign(TaskSchedulerPro.prototype, {
     const task = this.tasks.find((t) => t.id === id);
     if (!task) return;
 
-    task.completed = !task.completed;
-    if (task.completed) {
-      task.completedAt = new Date();
-    }
-    this.saveTasks();
-    this.renderTasks();
-    this.renderCourses();
-    this.renderCalendar();
-    this.renderTodayAssignments();
-    this.updateStats();
-    this.renderTimeStatistics();
-    this.showNotification(task.completed ? 'Completed!' : 'Marked pending', 'success');
+    this.applyAssignmentChanges(
+      [{ id, patch: this.assignmentStatusPatch(task, task.completed ? 'pending' : 'completed') }],
+      task.completed ? 'Marked pending' : 'Assignment completed',
+    );
   },
 
   deleteTask(id) {
-    if (!confirm('Delete this assignment?')) return;
-
-    this.tasks = this.tasks.filter((t) => t.id !== id);
-    this.saveTasks();
-    this.renderTasks();
-    this.renderCourses();
-    this.renderCalendar();
-    this.renderTodayAssignments();
-    this.updateStats();
-    this.showNotification('Assignment deleted', 'success');
+    const task = this.tasks.find((item) => item.id === id);
+    if (!task || !confirm('Delete this assignment? You can undo this action.')) return;
+    this.applyAssignmentChanges([{ id, remove: true }], 'Assignment deleted');
   },
 
   renderTasks() {
     const taskList = document.getElementById('taskList');
+    this.renderClassHubs();
+    document.querySelector('#assignments .assignment-controls').hidden = this.tasks.length === 0;
     let filteredTasks = this.getFilteredTasks();
+    if (this.assignmentCourseId != null) {
+      filteredTasks = filteredTasks.filter((task) => task.courseId === this.assignmentCourseId);
+    }
 
     if (this.searchTerm) {
       filteredTasks = filteredTasks.filter(
@@ -343,8 +346,22 @@ Object.assign(TaskSchedulerPro.prototype, {
       );
     }
 
+    if (this.assignmentView === 'week') {
+      filteredTasks = filteredTasks.filter(
+        (task) => !task.completed && this.assignmentWeekBucket(task) !== null,
+      );
+    }
+    this.visibleAssignmentIds = new Set(filteredTasks.map((task) => task.id));
+    this.selectedAssignmentIds = new Set(
+      [...this.selectedAssignmentIds].filter((id) => this.visibleAssignmentIds.has(id)),
+    );
+    this.updateAssignmentSelection();
+    this.saveAssignmentView();
+    const selectedCourse = this.courses.find((course) => course.id === this.assignmentCourseId);
+    document.getElementById('assignmentScope').textContent =
+      `${selectedCourse ? selectedCourse.name : 'All classes'} · ${filteredTasks.length} matching assignment${filteredTasks.length === 1 ? '' : 's'}`;
     if (filteredTasks.length === 0) {
-      taskList.innerHTML = '<div class="empty-state"><h3>No assignments found</h3></div>';
+      this.renderAssignmentEmptyState(taskList);
       return;
     }
 
@@ -353,7 +370,122 @@ Object.assign(TaskSchedulerPro.prototype, {
       return new Date(a.dueDate) - new Date(b.dueDate);
     });
 
-    taskList.innerHTML = filteredTasks.map((task) => this.createTaskHTML(task)).join('');
+    const grouping =
+      this.assignmentView === 'week' ? 'week' : document.getElementById('assignmentGrouping').value;
+    if (grouping === 'none') {
+      taskList.innerHTML = filteredTasks.map((task) => this.createTaskHTML(task)).join('');
+      return;
+    }
+    const groups = new Map();
+    const now = new Date();
+    for (const task of filteredTasks) {
+      let key, label, order;
+      if (task.completed) {
+        key = 'completed';
+        label = 'Completed';
+        order = Infinity;
+      } else if (grouping === 'week') {
+        key = this.assignmentWeekBucket(task);
+        label = { overdue: 'Overdue', today: 'Today', upcoming: 'Later this week' }[key];
+        order = { overdue: 0, today: 1, upcoming: 2 }[key];
+      } else if (grouping === 'priority') {
+        key = task.priority || 'none';
+        label =
+          { high: 'High priority', medium: 'Medium priority', low: 'Low priority' }[key] ||
+          'No priority';
+        order = { high: 0, medium: 1, low: 2 }[key] ?? 3;
+      } else if (grouping === 'type') {
+        key = task.type || 'other';
+        label =
+          Array.from(document.getElementById('assignmentType').options).find(
+            (option) => option.value === key,
+          )?.textContent || key;
+        order = 0;
+      } else {
+        const due = new Date(task.dueDate);
+        const days = window.SchedulerUtils.calendarDaysUntil(due, now);
+        key = `${due.getFullYear()}-${due.getMonth()}-${due.getDate()}`;
+        label =
+          days === 0
+            ? 'Today'
+            : days === 1
+              ? 'Tomorrow'
+              : due.toLocaleDateString('en-US', {
+                  weekday: 'short',
+                  month: 'short',
+                  day: 'numeric',
+                  year: 'numeric',
+                });
+        order = new Date(due.getFullYear(), due.getMonth(), due.getDate()).getTime();
+      }
+      if (!groups.has(key)) groups.set(key, { label, order, tasks: [] });
+      groups.get(key).tasks.push(task);
+    }
+    taskList.innerHTML = [...groups.values()]
+      .sort((a, b) => a.order - b.order || a.label.localeCompare(b.label))
+      .map(
+        (group) =>
+          `<section class="assignment-group"><h3 class="assignment-group-title">${window.SchedulerUtils.escapeHtml(group.label)} <span>${group.tasks.length}</span></h3>${group.tasks.map((task) => this.createTaskHTML(task)).join('')}</section>`,
+      )
+      .join('');
+  },
+
+  renderAssignmentEmptyState(container) {
+    let title,
+      description,
+      action = '';
+    const scopedTasks =
+      this.assignmentCourseId == null
+        ? this.tasks
+        : this.tasks.filter((task) => task.courseId === this.assignmentCourseId);
+    if (this.courses.length === 0 && this.tasks.length === 0) {
+      title = 'Start with your first class';
+      description = 'Add your first class to start organizing assignments.';
+      action = '<button type="button" data-empty-action="add-class">＋ Add Class</button>';
+    } else if (scopedTasks.length === 0) {
+      title = 'No assignments yet';
+      description = 'Use Add Assignment above to plan your first deadline for this class.';
+    } else {
+      title = 'No assignments match this view';
+      description = 'Try a different search, status, or date range.';
+      action = '<button type="button" data-empty-action="reset-filters">Clear filters</button>';
+    }
+    container.innerHTML = `<div class="empty-state assignment-empty"><h3>${title}</h3><p>${description}</p>${action}</div>`;
+  },
+
+  renderClassHubs() {
+    const container = document.getElementById('classHubs');
+    if (!container) return;
+    container.closest('.class-hubs-section').hidden =
+      this.courses.length === 0 && this.tasks.length === 0;
+    if (!this.courses.some((course) => course.id === this.assignmentCourseId)) {
+      this.assignmentCourseId = null;
+    }
+    const focusedId = container.contains(document.activeElement)
+      ? document.activeElement.dataset.courseId
+      : null;
+    container.replaceChildren();
+    const now = new Date();
+    const hubs = [{ id: null, name: 'All classes', code: 'Overview' }, ...this.courses];
+    for (const course of hubs) {
+      const tasks =
+        course.id == null ? this.tasks : this.tasks.filter((task) => task.courseId === course.id);
+      const pending = tasks.filter((task) => !task.completed);
+      const overdue = pending.filter((task) => new Date(task.dueDate) < now).length;
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'class-hub';
+      button.dataset.courseId = course.id == null ? 'all' : String(course.id);
+      button.setAttribute('aria-pressed', String(this.assignmentCourseId === course.id));
+      // Course names already use the application's escaped-text storage format.
+      button.innerHTML = `<span class="class-hub-code">${course.code || 'Class'}</span><strong>${course.name}</strong><span>${pending.length} pending · ${overdue} overdue · ${tasks.length - pending.length} completed</span>`;
+      button.addEventListener('click', () => {
+        this.assignmentCourseId = course.id;
+        this.renderTasks();
+      });
+      container.appendChild(button);
+      if (button.dataset.courseId === focusedId) button.focus();
+    }
   },
 
   createTaskHTML(task) {
@@ -403,7 +535,8 @@ Object.assign(TaskSchedulerPro.prototype, {
         : '';
 
     return `
-            <div class="task-item ${task.priority}-priority ${task.completed ? 'completed' : ''}">
+            <div class="task-item ${task.priority}-priority ${task.completed ? 'completed' : ''}" data-assignment-id="${task.id}">
+                ${this.assignmentQuickControls(task)}
                 <div class="task-header">
                     <h3 class="task-title">${task.title}</h3>
                     <span class="task-course">${task.courseName}</span>
@@ -436,6 +569,10 @@ Object.assign(TaskSchedulerPro.prototype, {
           return !task.completed;
         case 'completed':
           return task.completed;
+        case 'awaiting':
+          return task.submitted === true && !this.assignmentHasGrade(task);
+        case 'graded':
+          return this.assignmentHasGrade(task);
         case 'high':
           return task.priority === 'high' && !task.completed;
         case 'overdue':
@@ -465,6 +602,10 @@ Object.assign(TaskSchedulerPro.prototype, {
   },
 
   setMinDateTime() {
+    if (this.editingTaskId) {
+      document.getElementById('dueDate').removeAttribute('min');
+      return;
+    }
     const now = new Date();
     const localISOTime = new Date(now - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
     document.getElementById('dueDate').min = localISOTime;
@@ -483,6 +624,13 @@ Object.assign(TaskSchedulerPro.prototype, {
   clearTaskForm() {
     document.getElementById('taskForm').reset();
     this.tags = [];
+    this.editingTaskId = null;
+    this.editingDueDateValue = null;
+    document.getElementById('assignmentEditor').open = false;
+    document.getElementById('assignmentEditor').hidden = true;
+    document.getElementById('newAssignmentButton').setAttribute('aria-expanded', 'false');
+    document.getElementById('assignmentEditorToggle').textContent = 'Assignment details';
+    document.getElementById('assignmentFormTitle').textContent = 'Add New Assignment';
     this.setMinDateTime();
 
     // Clear tags display

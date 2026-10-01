@@ -17,3 +17,6 @@ syncManager.updateUI = function () {
 window.SchedulerFeatures.start();
 updateSyncTabUI();
 initializeAccessibility();
+if (taskScheduler.assignmentTabActive) {
+  openTab({ currentTarget: document.getElementById('tab-assignments') }, 'assignments');
+}
