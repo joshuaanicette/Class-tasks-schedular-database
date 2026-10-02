@@ -1,0 +1,15 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "class-task-reminders",
+  "main": "index.mjs",
+  "compatibility_date": "2026-09-01",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": true,
+  "triggers": { "crons": ["* * * * *"] },
+  "vars": {
+    "FIREBASE_PROJECT_ID": "class-tak-scheduler",
+    "FIREBASE_DATABASE_URL": "https://class-tak-scheduler-default-rtdb.firebaseio.com",
+    "FIREBASE_WEB_API_KEY": "AIzaSyAAjSl3kz6leUNABgOVY7B8h1hmyH4gdow",
+    "ALLOWED_ORIGINS": "https://class-tasks-schedular-database.vercel.app"
+  }
+}

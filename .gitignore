@@ -4,3 +4,7 @@ dist/
 .env.*
 !.env.example
 .DS_Store
+.wrangler/
+.dev.vars
+.dev.vars.*
+*service-account*.json

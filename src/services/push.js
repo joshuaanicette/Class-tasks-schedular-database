@@ -52,10 +52,20 @@
       return 'Sign in to receive reminders for your synced assignments while the app is closed.';
     if (
       !window.SchedulerPushConfig?.vapidKey ||
-      typeof firebase?.messaging !== 'function' ||
-      typeof firebase?.functions !== 'function'
+      typeof firebase?.messaging !== 'function'
     ) {
       return 'Background reminders are not configured yet. The site owner must finish the Firebase push setup.';
+    }
+    if (window.SchedulerPushConfig.provider === 'cloudflare') {
+      try {
+        const url = new URL(window.SchedulerPushConfig.workerUrl);
+        if (url.protocol !== 'https:' || url.username || url.password || url.search || url.hash)
+          throw new Error();
+      } catch (_) {
+        return 'Background reminders are not configured yet. The site owner must connect the reminder service.';
+      }
+    } else if (typeof firebase?.functions !== 'function') {
+      return 'Background reminders are not configured yet. The site owner must finish the reminder setup.';
     }
     return '';
   }
@@ -87,11 +97,44 @@
     return reg;
   }
 
-  function call(data) {
-    return firebase
-      .app()
-      .functions(window.SchedulerPushConfig.region || 'us-central1')
-      .httpsCallable('setPushDevice')(data);
+  async function call(data) {
+    if (window.SchedulerPushConfig.provider !== 'cloudflare') {
+      return firebase.app().functions(window.SchedulerPushConfig.region || 'us-central1')
+        .httpsCallable('setPushDevice')(data);
+    }
+    const user = firebaseAuth.currentUser;
+    if (!user) throw new Error('Sign in again to manage background reminders.');
+    const idToken = await user.getIdToken();
+    if (firebaseAuth.currentUser?.uid !== user.uid)
+      throw new Error('Your account changed. Please try again.');
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 15000);
+    try {
+      const response = await fetch(new URL('/devices', window.SchedulerPushConfig.workerUrl), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${idToken}` },
+        body: JSON.stringify(data), signal: controller.signal,
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        const messages = {
+          unauthenticated: 'Your sign-in expired. Sign in again and retry background reminders.',
+          'backend-not-configured': 'The reminder service needs its server configuration completed.',
+          'backend-credentials': 'The reminder service could not authenticate with Firebase. The site owner must check its server credentials.',
+          'origin-not-allowed': 'This website address is not enabled for background reminders yet.',
+          'device-conflict': 'This device is linked to another account. Turn off its reminders there first.',
+          'registration-busy': 'Reminder settings changed at the same time. Please try again.',
+        };
+        throw new Error(messages[result.error] || 'Could not connect to background reminders. The reminder service may be unavailable; try again.');
+      }
+      if (result.enabled !== data.enabled)
+        throw new Error('The reminder service returned an unexpected response. Check its configured address.');
+      return { data: result };
+    } catch (error) {
+      if (error.name === 'AbortError' || error.name === 'TypeError')
+        throw new Error('Could not connect to background reminders. Check your connection and the reminder service address, then try again.');
+      throw error;
+    } finally { clearTimeout(timer); }
   }
 
   function payload(token) {
@@ -169,7 +212,7 @@
       active = false;
       status(
         error.code
-          ? 'Could not connect to background reminders. Check the connection and Firebase deployment, then try again.'
+          ? 'Could not connect to background reminders. Check your connection and notification setup, then try again.'
           : error.message,
       );
     } finally {

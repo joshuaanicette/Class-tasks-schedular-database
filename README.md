@@ -27,7 +27,7 @@ Open `http://localhost:8000`. The app has no runtime npm dependencies or framewo
 - Device-local persistence, JSON backup/import, and optional account-based cloud sync
 - Responsive layout, selectable palettes, keyboard tabs, dialog focus handling, and reduced-motion support
 
-The existing 2026–2028 academic calendar data is preserved. Review dates against your course and university calendars when planning a new term. In-app reminders run while the app is open. Optional background push reminders use Firebase Cloud Messaging and scheduled functions; they require the one-time [background reminder deployment](docs/background-reminders.md) before users can enable them on each device.
+The existing 2026–2028 academic calendar data is preserved. Review dates against your course and university calendars when planning a new term. In-app reminders run while the app is open. Optional background push reminders use Firebase Cloud Messaging and a scheduled Cloudflare Worker on the free plan; they require the one-time [background reminder deployment](docs/background-reminders.md) before users can enable them on each device.
 
 ## Assignment workspace
 
