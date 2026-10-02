@@ -22,13 +22,20 @@ function normalizePreferences(input = {}) {
   return result;
 }
 
+const formatters = new Map();
 function localDay(value, timeZone) {
-  const parts = new Intl.DateTimeFormat('en-US', {
+  let formatter = formatters.get(timeZone);
+  if (!formatter) {
+    if (formatters.size >= 16) formatters.clear();
+    formatter = new Intl.DateTimeFormat('en-US', {
     timeZone,
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',
-  }).formatToParts(new Date(value));
+    });
+    formatters.set(timeZone, formatter);
+  }
+  const parts = formatter.formatToParts(new Date(value));
   const part = (name) => parts.find((p) => p.type === name).value;
   return Date.UTC(Number(part('year')), Number(part('month')) - 1, Number(part('day')));
 }

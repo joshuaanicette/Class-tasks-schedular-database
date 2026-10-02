@@ -9,6 +9,7 @@ async function deliverDevice({ ref, device, digest, send, now = Date.now() }) {
       !current ||
       current.uid !== device.uid ||
       current.token !== device.token ||
+      current.revision !== device.revision ||
       current.lastKey === digest.key ||
       Number(current.leaseUntil) > now
     )

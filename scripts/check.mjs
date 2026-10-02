@@ -1,6 +1,7 @@
 import { readFile, readdir, access } from 'node:fs/promises';
 import { join } from 'node:path';
 import { Script } from 'node:vm';
+import { execFileSync } from 'node:child_process';
 
 async function checkScripts(directory) {
   for (const entry of await readdir(directory, { withFileTypes: true })) {
@@ -13,6 +14,9 @@ async function checkScripts(directory) {
 await checkScripts('src');
 await checkScripts('config');
 await checkScripts('functions');
+for (const file of ['worker/index.mjs', 'worker/firebase.mjs']) {
+  execFileSync(process.execPath, ['--check', file]);
+}
 new Script(await readFile('firebase-messaging-sw.js', 'utf8'), {
   filename: 'firebase-messaging-sw.js',
 });
